@@ -3,6 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import * as faceapi from '@vladmandic/face-api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface FormData {
   name: string;
@@ -174,78 +178,84 @@ export default function RegisterFace() {
   };
   
   return (
-    <div className="flex flex-col items-center">
-      {errorMessage && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded w-full max-w-md">
-          {errorMessage}
-        </div>
-      )}
-      
-      {successMessage && (
-        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded w-full max-w-md">
-          {successMessage}
-        </div>
-      )}
-      
-      <div className="relative mb-6 w-full max-w-md">
-        <video
-          ref={videoRef}
-          className="w-full h-auto rounded-lg shadow-lg"
-          autoPlay
-          playsInline
-          muted
-          onLoadedMetadata={() => {
-            if (canvasRef.current && videoRef.current) {
-              canvasRef.current.width = videoRef.current.videoWidth;
-              canvasRef.current.height = videoRef.current.videoHeight;
-            }
-          }}
-        />
-        <canvas
-          ref={canvasRef}
-          className="absolute top-0 left-0 w-full h-full"
-        />
-      </div>
-      
-      <form 
-        onSubmit={handleSubmit(onSubmit)} 
-        className="w-full max-w-md space-y-4"
-      >
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Nama
-          </label>
-          <input
-            id="name"
-            type="text"
-            className={`w-full px-4 py-2 border rounded-md ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
-            placeholder="Masukkan nama Anda"
-            {...register('name', { 
-              required: 'Nama wajib diisi',
-              minLength: { value: 2, message: 'Nama minimal 2 karakter' }
-            })}
-          />
-          {errors.name && (
-            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+    <div className="flex flex-col items-center w-full p-6">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">Pendaftaran Wajah</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
           )}
-        </div>
-        
-        <button
-          type="submit"
-          disabled={!isModelLoaded || !isCameraActive || registrationStatus === 'processing'}
-          className={`w-full py-2 px-4 text-white font-medium rounded-md 
-            ${(!isModelLoaded || !isCameraActive || registrationStatus === 'processing') 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700'}`}
-        >
-          {registrationStatus === 'processing' 
-            ? 'Mendaftarkan...' 
-            : 'Daftarkan Wajah'}
-        </button>
-      </form>
+          
+          {successMessage && (
+            <Alert variant="success">
+              <AlertDescription>{successMessage}</AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="relative w-full aspect-video bg-muted rounded-md overflow-hidden border border-border">
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover"
+              autoPlay
+              playsInline
+              muted
+              onLoadedMetadata={() => {
+                if (canvasRef.current && videoRef.current) {
+                  canvasRef.current.width = videoRef.current.videoWidth;
+                  canvasRef.current.height = videoRef.current.videoHeight;
+                }
+              }}
+            />
+            <canvas
+              ref={canvasRef}
+              className="absolute top-0 left-0 w-full h-full"
+            />
+            
+            {!isCameraActive && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+                <p className="text-muted-foreground">Kamera tidak aktif</p>
+              </div>
+            )}
+          </div>
+          
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium text-foreground">
+                Nama
+              </label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Masukkan nama Anda"
+                className={errors.name ? "border-destructive" : ""}
+                {...register('name', { 
+                  required: 'Nama wajib diisi',
+                  minLength: { value: 2, message: 'Nama minimal 2 karakter' }
+                })}
+              />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+            
+            <Button
+              type="submit"
+              disabled={!isModelLoaded || !isCameraActive || registrationStatus === 'processing'}
+              className="w-full"
+            >
+              {registrationStatus === 'processing' 
+                ? 'Mendaftarkan...' 
+                : 'Daftarkan Wajah'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
       
-      <div className="mt-6 text-center text-sm text-gray-500">
-        <p>Sistem Pendaftaran Wajah</p>
+      <div className="mt-6 text-center text-sm text-muted-foreground">
         <p>Pastikan wajah Anda terlihat jelas di kamera</p>
         {!isModelLoaded && <p className="text-amber-600">Memuat model deteksi wajah...</p>}
         {!isCameraActive && isModelLoaded && (

@@ -1,47 +1,51 @@
 'use client';
 
 import { Suspense, lazy, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 // Lazy load the AttendanceTable
 const AttendanceTable = lazy(() => import('./AttendanceTable'));
 
 export default function LazyAttendanceTable() {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  if (!isExpanded) {
-    return (
-      <div className="w-full mt-8 text-center">
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-        >
-          Tampilkan Riwayat Kehadiran
-        </button>
-      </div>
-    );
-  }
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  const handleRefresh = () => {
+    // Increment key to force refresh
+    setRefreshKey(prev => prev + 1);
+  };
 
   return (
-    <div className="w-full mt-8">
+    <div className="w-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Riwayat Kehadiran</h2>
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="px-3 py-1 text-sm border rounded hover:bg-gray-100 transition"
+        <h2 className="text-lg font-semibold">Riwayat Kehadiran</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          className="flex items-center gap-1"
         >
-          Sembunyikan
-        </button>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+          </svg>
+          Refresh
+        </Button>
       </div>
       
       <Suspense fallback={
-        <div className="rounded-md border p-4 w-full">
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="rounded-md border border-border p-6 w-full bg-muted">
+          <div className="flex justify-center mb-3">
+            <div className="relative w-8 h-8">
+              <div className="absolute inset-0 rounded-full border-2 border-muted"></div>
+              <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
+            </div>
           </div>
-          <p className="text-center mt-2 text-gray-500">Memuat komponen tabel...</p>
+          <p className="text-center text-sm text-muted-foreground">Memuat data kehadiran...</p>
         </div>
       }>
-        <AttendanceTable />
+        <AttendanceTable key={refreshKey} />
       </Suspense>
     </div>
   );

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistem Absensi dengan Pengenalan Wajah",
-  description: "Sistem absensi menggunakan teknologi pengenalan wajah dengan face-api.js",
+  title: "Face Recognition Attendance",
+  description: "Sistem absensi dengan pengenalan wajah",
 };
 
 export default function RootLayout({
@@ -24,9 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className="antialiased">
+    <html lang="id" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-white text-zinc-900`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white antialiased`}
       >
         <header className="border-b">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
