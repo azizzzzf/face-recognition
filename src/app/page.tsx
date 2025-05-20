@@ -7,9 +7,9 @@ export default function Home() {
   return (
     <main className="container mx-auto px-4 py-12 max-w-4xl">
       <section className="mb-16 text-center space-y-6">
-        <h1 className="text-4xl font-bold tracking-tight">Sistem Absensi dengan Pengenalan Wajah</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Sistem Presensi dengan Face-api.js</h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Teknologi modern untuk mencatat kehadiran secara otomatis, aman, dan efisien.
+          Digunakan untuk melakukan evaluasi presensi melalui variabel akurasi dan latency dari model face-api.js
         </p>
 
         <div className="flex flex-wrap justify-center gap-4">
