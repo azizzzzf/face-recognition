@@ -54,7 +54,7 @@ function convertBigIntToString(data: unknown): JsonValue {
 }
 
 // Fungsi untuk memproses data log kehadiran untuk memastikan format konsisten
-function processAttendanceLogs(logs: Record<string, any>[]): Record<string, any>[] {
+function processAttendanceLogs(logs: Record<string, unknown>[]): Record<string, unknown>[] {
   return logs.map(log => {
     // Pastikan createdAt selalu dalam format ISO string
     if (log.createdAt instanceof Date) {
@@ -62,7 +62,7 @@ function processAttendanceLogs(logs: Record<string, any>[]): Record<string, any>
     } else if (typeof log.createdAt === 'string') {
       try {
         // Coba validasi format tanggal dan konversi
-        const date = new Date(log.createdAt);
+        const date = new Date(log.createdAt as string);
         if (!isNaN(date.getTime())) {
           log.createdAt = date.toISOString();
         }
