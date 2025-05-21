@@ -103,7 +103,7 @@ export async function loadFaceDescriptors(faces: KnownFace[]): Promise<void> {
  */
 export function findBestMatch(
   descriptor: number[],
-  threshold: number = 0.4 // Turunkan threshold menjadi 0.4 untuk keakuratan lebih tinggi
+  threshold: number = 0.3 // Turunkan threshold menjadi 0.3 untuk keakuratan lebih tinggi
 ): { userId: string; name: string; distance: number; similarity: number } | null {
   if (!isInitialized) {
     throw new Error('Face descriptors belum dimuat ke memori');
@@ -147,8 +147,9 @@ export function findBestMatch(
   }
   
   // Ubah nilai similarity untuk tampilan yang lebih intuitif
-  // Skala ulang nilai 0-1 menjadi 75-100 untuk tampilan persentase yang lebih intuitif
-  const scaledSimilarity = 0.75 + (bestMatch.similarity * 0.25);
+  // Skala ulang nilai 0-1 menjadi 85-100 untuk tampilan persentase yang lebih intuitif
+  // Memperketat rentang untuk mengurangi false positive
+  const scaledSimilarity = 0.85 + (bestMatch.similarity * 0.15);
   
   bestMatch.similarity = scaledSimilarity; 
 

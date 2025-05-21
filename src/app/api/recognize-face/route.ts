@@ -8,7 +8,7 @@ import {
 
 // Konstanta untuk threshold (batas) pencocokan wajah
 // Turunkan threshold untuk meningkatkan akurasi
-const MATCH_THRESHOLD = 0.4;
+const MATCH_THRESHOLD = 0.3;
 
 // Fungsi untuk memastikan descriptor dimuat ke memori
 async function ensureFaceDescriptorsLoaded() {
@@ -87,6 +87,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    
+    // Validasi ukuran descriptor
+    if (descriptor.length !== 128) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid descriptor format - expected 128 values'
+      }, { status: 400 });
+    }
 
     // Validasi latency
     if (typeof latencyMs !== 'number' || isNaN(latencyMs)) {
@@ -99,7 +107,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Cari kecocokan terbaik
+    // Cari kecocokan terbaik dengan threshold yang diperketat
     const match = findBestMatch(descriptor, MATCH_THRESHOLD);
     
     if (!match) {
@@ -110,6 +118,15 @@ export async function POST(request: Request) {
         },
         { status: 404 }
       );
+    }
+    
+    // Tambahan validasi kecocokan - pastikan similarity cukup tinggi
+    if (match.similarity < 0.88) {
+      console.warn(`Low confidence match detected: ${match.similarity.toFixed(4)} for user ${match.name}`);
+      return NextResponse.json({
+        success: false,
+        error: 'Kecocokan wajah terlalu rendah, silakan coba lagi'
+      }, { status: 404 });
     }
 
     try {

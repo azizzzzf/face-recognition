@@ -17,6 +17,24 @@ interface RecognitionResult {
   error?: string;
 }
 
+// Style untuk video non-mirror (menghilangkan efek cermin)
+const videoStyle = {
+  transform: 'scaleX(1)', // Nilai 1 untuk non-mirror, -1 untuk mirror
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover' as const
+};
+
+// Style untuk canvas yang sesuai dengan video
+const canvasStyle = {
+  position: 'absolute' as const,
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  transform: 'scaleX(1)' // Nilai 1 untuk non-mirror, harus sama dengan video
+};
+
 export default function RecognizeFace() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -91,7 +109,7 @@ export default function RecognizeFace() {
         video: {
           width: { ideal: 640 },
           height: { ideal: 640 },
-          facingMode: 'user',
+          facingMode: 'user', // 'user' untuk kamera depan
           frameRate: { ideal: 30 }
         }
       });
@@ -133,7 +151,7 @@ export default function RecognizeFace() {
         // Gunakan detector options yang dioptimalkan
         const detectorOptions = new faceapi.TinyFaceDetectorOptions({ 
           inputSize: 320,  // Size lebih besar untuk akurasi landmark
-          scoreThreshold: 0.6 // Threshold lebih rendah untuk mendeteksi wajah dari berbagai sudut
+          scoreThreshold: 0.55 // Threshold lebih ketat untuk akurasi lebih baik
         });
         
         // Deteksi wajah dan landmark saja (tanpa descriptor untuk performa)
@@ -163,8 +181,11 @@ export default function RecognizeFace() {
           if (ctx) {
             ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
             
-            // Buat landmark lebih terlihat dengan warna hitam-putih
-            ctx.strokeStyle = '#FFFFFF';
+            // Konsisten dengan tampilan non-mirror
+            ctx.save();
+            
+            // Buat landmark lebih terlihat dengan warna yang kontras
+            ctx.strokeStyle = '#22c55e'; // Hijau yang lebih terlihat
             ctx.lineWidth = 2;
             
             // Gambar kotak deteksi dengan warna yang kontras
@@ -172,6 +193,8 @@ export default function RecognizeFace() {
             
             // Gambar landmark dengan opsi tampilan yang dioptimalkan
             faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetections);
+            
+            ctx.restore();
           }
         }
       } catch (error) {
@@ -204,7 +227,7 @@ export default function RecognizeFace() {
         // Sesuaikan parameter berdasarkan upaya
         // Percobaan pertama: parameter ideal
         // Percobaan berikutnya: lebih toleran
-        const scoreThreshold = 0.7 - (attempts * 0.1); // 0.7, 0.6, 0.5
+        const scoreThreshold = 0.65 - (attempts * 0.05); // 0.65, 0.6, 0.55 - lebih ketat pada awalnya
         
         // Gunakan ukuran input optimal untuk akurasi terbaik
         // Saat deteksi untuk absensi, kita prioritaskan akurasi di atas kecepatan
@@ -229,7 +252,11 @@ export default function RecognizeFace() {
             
             if (ctx) {
               // Gambar frame video ke canvas
+              // Gunakan pendekatan flip horizontal jika perlu
+              ctx.save();
+              // Jangan lakukan flip di sini karena kita sudah menggunakan tampilan non-mirror
               ctx.drawImage(videoEl, 0, 0);
+              ctx.restore();
               
               // Normalisasi pencahayaan pada upaya kedua dan ketiga
               if (attempts === 2) {
@@ -695,7 +722,8 @@ export default function RecognizeFace() {
                 
                 <video 
                   ref={videoRef} 
-                  className={`w-full h-full object-cover ${isCameraActive ? 'opacity-100' : 'opacity-0'}`}
+                  style={videoStyle}
+                  className={`${isCameraActive ? 'opacity-100' : 'opacity-0'}`}
                   autoPlay 
                   playsInline 
                   muted
@@ -703,7 +731,7 @@ export default function RecognizeFace() {
                 
                 <canvas 
                   ref={canvasRef} 
-                  className="absolute top-0 left-0 w-full h-full"
+                  style={canvasStyle}
                 />
                 
                 {/* Spinner saat processing */}
