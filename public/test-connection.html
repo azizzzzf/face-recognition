@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Connection Test</title>
+</head>
+<body>
+    <h1>Backend Connection Test</h1>
+    <button onclick="testConnection()">Test Backend Connection</button>
+    <div id="result"></div>
+
+    <script>
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Test health endpoint
+                const healthResponse = await fetch('http://localhost:8000/health');
+                const healthData = await healthResponse.json();
+                
+                // Test users endpoint
+                const usersResponse = await fetch('http://localhost:8000/users');
+                const usersData = await usersResponse.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>Connection Successful!</h3>
+                    <p><strong>Health:</strong> ${healthData.status}</p>
+                    <p><strong>Users found:</strong> ${usersData.count}</p>
+                    <p><strong>Backend version:</strong> ${healthData.version}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Connection Failed!</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Details:</strong> ${error.toString()}</p>
+                `;
+                console.error('Connection test failed:', error);
+            }
+        }
+    </script>
+</body>
+</html>

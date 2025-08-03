@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
-    // Memastikan request body adalah valid JSON
     const body = await request.json().catch(() => null);
     
     if (!body) {
@@ -13,7 +12,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, descriptor } = body;
+    const { name, descriptor, userId, multiAngle = false, arcfaceDescriptor, enrollmentImages } = body;
 
     // Validasi nama
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -46,17 +45,70 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    // Handle existing user with ID (for multi-angle registration)
+    if (userId) {
+      try {
+        // Prepare update data
+        const updateData: {
+          faceApiDescriptor: number[];
+          arcfaceDescriptor?: number[];
+          enrollmentImages?: string;
+        } = {
+          faceApiDescriptor: descriptor,
+        };
+        
+        // Add ArcFace descriptor if provided
+        if (arcfaceDescriptor && Array.isArray(arcfaceDescriptor)) {
+          updateData.arcfaceDescriptor = arcfaceDescriptor;
+        }
+        
+        // Add enrollment images if provided
+        if (enrollmentImages && Array.isArray(enrollmentImages)) {
+          updateData.enrollmentImages = JSON.stringify(enrollmentImages);
+        }
+        
+        // Update existing user with descriptors
+        const updatedFace = await prisma.knownFace.update({
+          where: { id: userId },
+          data: updateData,
+        });
+        
+        return NextResponse.json({
+          ...updatedFace,
+          message: `Descriptors updated for ${name}`,
+          multiAngle,
+          arcfaceEnabled: !!arcfaceDescriptor
+        }, { status: 200 });
+        
+      } catch (updateError) {
+        console.error('Error updating existing face:', updateError);
+        // If update fails, create new record
+      }
+    }
 
-    // Menyimpan data wajah ke database menggunakan Prisma
+    // Create new user (legacy support or new registration)
+    const createData: {
+      name: string;
+      faceApiDescriptor: number[];
+      arcfaceDescriptor: number[];
+      enrollmentImages: string;
+    } = {
+      name,
+      faceApiDescriptor: descriptor,
+      arcfaceDescriptor: arcfaceDescriptor || [], // Use provided ArcFace descriptor or empty array
+      enrollmentImages: enrollmentImages ? JSON.stringify(enrollmentImages) : '[]', // Use provided images or empty array
+    };
+    
     const createdFace = await prisma.knownFace.create({
-      data: {
-        name,
-        descriptor,
-      },
+      data: createData,
     });
 
-    // Mengembalikan response sukses
-    return NextResponse.json(createdFace, { status: 201 });
+    return NextResponse.json({
+      ...createdFace,
+      message: `Face registered successfully for ${name}`,
+      multiAngle,
+      arcfaceEnabled: !!arcfaceDescriptor
+    }, { status: 201 });
   } catch (error) {
     console.error('Error registering face:', error);
     return NextResponse.json(

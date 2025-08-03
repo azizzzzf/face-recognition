@@ -45,7 +45,7 @@ export async function loadFaceDescriptors(faces: KnownFace[]): Promise<void> {
     faceDescriptors[face.id] = {
       id: face.id,
       name: face.name,
-      descriptor: toFloat32Array(face.descriptor),
+      descriptor: toFloat32Array(face.faceApiDescriptor),
     };
   }
   

@@ -1,35 +1,35 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as faceapi from '@vladmandic/face-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MultiAngleCapture } from '@/components/MultiAngleCapture';
 
 interface FormData {
   name: string;
 }
 
-type RegistrationStatus = 'idle' | 'processing' | 'success' | 'error';
+type RegistrationStatus = 'idle' | 'capturing' | 'processing' | 'success' | 'error';
 
 export default function RegisterFace() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
-  const [isCameraActive, setIsCameraActive] = useState(false);
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
+  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<FormData>();
+  const nameValue = watch('name');
   
   // Load face-api.js models
   useEffect(() => {
     const loadModels = async () => {
       try {
-        // Path ke model
         const MODEL_URL = '/models';
         
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
@@ -37,231 +37,281 @@ export default function RegisterFace() {
         await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
         
         setIsModelLoaded(true);
-        console.log('Model deteksi wajah berhasil dimuat');
-        
-        // Aktifkan kamera setelah model dimuat
-        startCamera();
+        console.log('Face-api.js models loaded successfully');
       } catch (error) {
-        console.error('Gagal memuat model:', error);
-        setErrorMessage('Gagal memuat model deteksi wajah. Silakan muat ulang halaman.');
+        console.error('Failed to load models:', error);
+        setErrorMessage('Failed to load face detection models. Please reload the page.');
       }
     };
     
     loadModels();
-    
-    // Cleanup saat komponen di-unmount
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-    };
   }, []);
-  
-  // Aktifkan kamera
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: {
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: 'user'
-        }
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setIsCameraActive(true);
-        setErrorMessage(null);
-      }
-    } catch (error) {
-      console.error('Gagal mengakses kamera:', error);
-      setErrorMessage('Tidak dapat mengakses kamera. Pastikan kamera terhubung dan izin diberikan.');
-      setIsCameraActive(false);
-    }
+
+  // Convert base64 image to image element for face-api processing
+  const base64ToImage = (base64: string): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = base64;
+    });
   };
-  
-  // Deteksi wajah dan dapatkan descriptor
-  const detectFace = async (): Promise<Float32Array | null> => {
-    if (!videoRef.current || !isModelLoaded) return null;
-    
+
+  // Extract face descriptor from base64 image using face-api.js
+  const extractFaceDescriptor = async (base64Image: string): Promise<Float32Array | null> => {
     try {
-      // Deteksi wajah dengan TinyFaceDetector
+      const img = await base64ToImage(base64Image);
+      
       const detection = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
       
-      if (!detection) {
-        throw new Error('Tidak ada wajah terdeteksi');
-      }
-      
-      // Tampilkan kotak wajah dan landmark pada canvas
-      if (canvasRef.current && videoRef.current) {
-        const displaySize = { 
-          width: videoRef.current.videoWidth, 
-          height: videoRef.current.videoHeight 
-        };
-        
-        faceapi.matchDimensions(canvasRef.current, displaySize);
-        
-        const resizedDetection = faceapi.resizeResults(detection, displaySize);
-        
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-          faceapi.draw.drawDetections(canvasRef.current, resizedDetection);
-          faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetection);
-        }
-      }
-      
-      return detection.descriptor;
+      return detection ? detection.descriptor : null;
     } catch (error) {
-      console.error('Kesalahan deteksi wajah:', error);
-      throw error;
+      console.error('Error extracting face descriptor:', error);
+      return null;
     }
   };
-  
-  // Proses pendaftaran
+
+  // Process multiple images and get average descriptor
+  const processMultipleImages = async (images: string[]): Promise<Float32Array | null> => {
+    const descriptors: Float32Array[] = [];
+    
+    for (const image of images) {
+      const descriptor = await extractFaceDescriptor(image);
+      if (descriptor) {
+        descriptors.push(descriptor);
+      }
+    }
+    
+    if (descriptors.length === 0) {
+      return null;
+    }
+    
+    // Calculate average descriptor
+    const averageDescriptor = new Float32Array(descriptors[0].length);
+    for (let i = 0; i < averageDescriptor.length; i++) {
+      let sum = 0;
+      for (const descriptor of descriptors) {
+        sum += descriptor[i];
+      }
+      averageDescriptor[i] = sum / descriptors.length;
+    }
+    
+    return averageDescriptor;
+  };
+
+  const handleCaptureComplete = (images: string[]) => {
+    setCapturedImages(images);
+    setShowRegistrationForm(true);
+  };
+
   const onSubmit = async (data: FormData) => {
+    if (!nameValue || capturedImages.length === 0) {
+      setErrorMessage('Please provide your name and capture face images');
+      return;
+    }
+
     setRegistrationStatus('processing');
     setErrorMessage(null);
     setSuccessMessage(null);
     
     try {
-      // Deteksi wajah
-      const descriptor = await detectFace();
+      // Process images with face-api.js
+      const faceApiDescriptor = await processMultipleImages(capturedImages);
       
-      if (!descriptor) {
-        throw new Error('Gagal mendeteksi wajah. Pastikan wajah Anda terlihat jelas di kamera.');
+      if (!faceApiDescriptor) {
+        throw new Error('Failed to detect face in captured images. Please try again.');
       }
       
-      // Konversi Float32Array ke array biasa untuk JSON
-      const descriptorArray = Array.from(descriptor);
+      // Try to register with backend (ArcFace) - but don't fail if backend is unavailable
+      let backendResult = null;
+      let arcfaceDescriptor = null;
       
-      // Kirim data ke API
-      const response = await fetch('/api/register-face', {
+      try {
+        const backendResponse = await fetch('http://localhost:8000/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: data.name,
+            enrollment_images: capturedImages,
+            face_api_descriptor: Array.from(faceApiDescriptor)
+          }),
+        });
+        
+        if (backendResponse.ok) {
+          backendResult = await backendResponse.json();
+          arcfaceDescriptor = backendResult.arcface_descriptor;
+        } else {
+          console.warn('Backend registration failed, continuing with face-api only');
+        }
+      } catch (backendError) {
+        console.warn('Backend server unavailable, continuing with face-api only:', backendError);
+      }
+      
+      // Register with local API
+      const localResponse = await fetch('/api/register-face', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: data.name,
-          descriptor: descriptorArray
+          descriptor: Array.from(faceApiDescriptor),
+          arcfaceDescriptor: arcfaceDescriptor || undefined,
+          enrollmentImages: capturedImages,
+          userId: backendResult?.user_id,
+          multiAngle: capturedImages.length > 1
         }),
       });
       
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Gagal mendaftarkan wajah');
+      if (!localResponse.ok) {
+        const localError = await localResponse.json();
+        console.error('Failed to register with local API:', localError);
+        throw new Error(localError.error || 'Failed to save registration locally. Please try again.');
       }
       
-      // Sukses
+      const localResult = await localResponse.json();
+      
       setRegistrationStatus('success');
-      setSuccessMessage(`Pendaftaran wajah untuk ${data.name} berhasil!`);
-      reset(); // Reset form
+      setSuccessMessage(
+        `Registration successful for ${data.name}! ` +
+        `Processed ${capturedImages.length} images. ` +
+        `ArcFace enabled: ${localResult.arcfaceEnabled ? 'Yes' : 'No'}. ` +
+        (backendResult?.arcface_latency_ms ? `ArcFace latency: ${backendResult.arcface_latency_ms.toFixed(2)}ms` : 'Face-API only mode.')
+      );
       
-      // Bersihkan canvas
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        }
-      }
+      // Reset form and state
+      reset();
+      setCapturedImages([]);
+      setShowRegistrationForm(false);
+      
     } catch (error: unknown) {
-      console.error('Kesalahan pendaftaran:', error);
+      console.error('Registration error:', error);
       setRegistrationStatus('error');
-      setErrorMessage(error instanceof Error ? error.message : 'Terjadi kesalahan saat pendaftaran wajah');
+      setErrorMessage(error instanceof Error ? error.message : 'Registration failed. Please try again.');
     }
   };
-  
+
+  const handleReset = () => {
+    setCapturedImages([]);
+    setShowRegistrationForm(false);
+    setRegistrationStatus('idle');
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    reset();
+  };
+
+  if (!isModelLoaded) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] w-full">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">Loading face detection models...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center w-full p-6">
-      <Card className="w-full max-w-md">
+    <div className="flex flex-col items-center w-full p-6 max-w-4xl mx-auto">
+      <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Pendaftaran Wajah</CardTitle>
+          <CardTitle className="text-2xl font-semibold text-center">
+            Multi-Angle Face Registration
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent>
           {errorMessage && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mb-6">
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           )}
           
           {successMessage && (
-            <Alert variant="success">
-              <AlertDescription>{successMessage}</AlertDescription>
+            <Alert className="mb-6 border-green-200 bg-green-50">
+              <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
             </Alert>
           )}
-          
-          <div className="relative w-full aspect-video bg-muted rounded-md overflow-hidden border border-border">
-            <video
-              ref={videoRef}
-              className="w-full h-full object-cover"
-              autoPlay
-              playsInline
-              muted
-              onLoadedMetadata={() => {
-                if (canvasRef.current && videoRef.current) {
-                  canvasRef.current.width = videoRef.current.videoWidth;
-                  canvasRef.current.height = videoRef.current.videoHeight;
-                }
-              }}
-            />
-            <canvas
-              ref={canvasRef}
-              className="absolute top-0 left-0 w-full h-full"
-            />
-            
-            {!isCameraActive && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
-                <p className="text-muted-foreground">Kamera tidak aktif</p>
-              </div>
-            )}
-          </div>
-          
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-foreground">
-                Nama
-              </label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Masukkan nama Anda"
-                className={errors.name ? "border-destructive" : ""}
-                {...register('name', { 
-                  required: 'Nama wajib diisi',
-                  minLength: { value: 2, message: 'Nama minimal 2 karakter' }
-                })}
+
+          {!showRegistrationForm ? (
+            <div className="mt-6">
+              <MultiAngleCapture
+                onCaptureComplete={handleCaptureComplete}
+                isCapturing={registrationStatus === 'capturing'}
               />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
             </div>
-            
-            <Button
-              type="submit"
-              disabled={!isModelLoaded || !isCameraActive || registrationStatus === 'processing'}
-              className="w-full"
-            >
-              {registrationStatus === 'processing' 
-                ? 'Mendaftarkan...' 
-                : 'Daftarkan Wajah'}
-            </Button>
-          </form>
+          ) : (
+            <div className="space-y-6 mt-6">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  {capturedImages.length} images captured successfully
+                </p>
+                
+                <div className="flex justify-center gap-2 mb-6">
+                  {capturedImages.slice(0, 3).map((image, index) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={`Captured ${index + 1}`}
+                      className="w-16 h-16 object-cover rounded border"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium">
+                    Full Name
+                  </label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    className={errors.name ? "border-destructive" : ""}
+                    {...register('name', { 
+                      required: 'Name is required',
+                      minLength: { value: 2, message: 'Name must be at least 2 characters' }
+                    })}
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-destructive">{errors.name.message}</p>
+                  )}
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    disabled={registrationStatus === 'processing'}
+                    className="flex-1"
+                  >
+                    {registrationStatus === 'processing' 
+                      ? 'Registering...' 
+                      : 'Register Face'}
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleReset}
+                    disabled={registrationStatus === 'processing'}
+                  >
+                    Start Over
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
         </CardContent>
       </Card>
-      
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        <p>Pastikan wajah Anda terlihat jelas di kamera</p>
-        {!isModelLoaded && <p className="text-amber-600">Memuat model deteksi wajah...</p>}
-        {!isCameraActive && isModelLoaded && (
-          <p className="text-amber-600">Mengaktifkan kamera...</p>
-        )}
-      </div>
     </div>
   );
-} 
+}

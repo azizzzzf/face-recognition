@@ -90,7 +90,7 @@ export async function loadFaceDescriptors(faces: KnownFace[]): Promise<void> {
     faceDescriptors[face.id] = {
       id: face.id,
       name: face.name,
-      descriptor: toFloat32Array(face.descriptor),
+      descriptor: toFloat32Array(face.faceApiDescriptor),
     };
   }
   
@@ -146,12 +146,9 @@ export function findBestMatch(
     return null;
   }
   
-  // Ubah nilai similarity untuk tampilan yang lebih intuitif
-  // Skala ulang nilai 0-1 menjadi 85-100 untuk tampilan persentase yang lebih intuitif
-  // Memperketat rentang untuk mengurangi false positive
-  const scaledSimilarity = 0.85 + (bestMatch.similarity * 0.15);
-  
-  bestMatch.similarity = scaledSimilarity; 
+  // Return genuine similarity score without artificial scaling
+  // This ensures accurate benchmark comparison with ArcFace
+  bestMatch.similarity = bestMatch.similarity; 
 
   return bestMatch;
 }

@@ -13,6 +13,7 @@ interface RecognitionResult {
     name: string;
     similarity: number;
     timestamp: string;
+    method?: string;
   };
   error?: string;
 }
@@ -375,6 +376,22 @@ export default function RecognizeFace() {
     }
   };
 
+  const captureImageForArcFace = async (): Promise<string | null> => {
+    if (!videoRef.current || !canvasRef.current) return null;
+    
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const context = canvas.getContext('2d');
+    
+    if (!context) return null;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+    
+    return canvas.toDataURL('image/jpeg', 0.8);
+  };
+
   // Proses pengenalan wajah
   const processRecognition = async () => {
     setIsProcessing(true);
@@ -393,14 +410,20 @@ export default function RecognizeFace() {
       // Konversi Float32Array ke array biasa untuk JSON
       const descriptorArray = Array.from(result.descriptor);
       
-      // Buat payload JSON
+      // Capture image for ArcFace recognition
+      const currentImage = await captureImageForArcFace();
+      
+      // Try Face-API.js recognition first
       const payload = JSON.stringify({
         descriptor: descriptorArray,
         latencyMs: result.latencyMs
       });
       
+      let faceApiResult = null;
+      let arcfaceResult = null;
+      
       try {
-        // Kirim ke API
+        // Try Face-API.js recognition
         const response = await fetch('/api/recognize-face', {
           method: 'POST',
           headers: {
@@ -409,37 +432,72 @@ export default function RecognizeFace() {
           body: payload,
         });
         
-        let data;
+        if (response.ok) {
+          faceApiResult = await response.json();
+        }
+      } catch (error) {
+        console.warn('Face-API.js recognition failed:', error);
+      }
+      
+      // Try ArcFace recognition if image was captured
+      if (currentImage) {
         try {
-          data = await response.json();
-        } catch (jsonError) {
-          console.error('Error parsing JSON response:', jsonError);
-          throw new Error('Gagal memproses respons dari server');
-        }
-        
-        const globalEndTime = performance.now();
-        
-        // Update performance metrics
-        setPerformanceMetrics(prev => ({
-          detectionTime: prev?.detectionTime || 0,
-          totalTime: globalEndTime - globalStartTime
-        }));
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            setRecognitionResult({
-              success: false,
-              error: 'Wajah tidak dikenali'
-            });
-          } else {
-            throw new Error(data.error || 'Error mengenali wajah');
+          const arcfaceResponse = await fetch('http://localhost:8000/recognize', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              image: currentImage
+            }),
+          });
+          
+          if (arcfaceResponse.ok) {
+            arcfaceResult = await arcfaceResponse.json();
           }
-        } else {
-          setRecognitionResult(data);
+        } catch (error) {
+          console.warn('ArcFace recognition failed:', error);
         }
-      } catch (fetchError) {
-        console.error('Kesalahan komunikasi dengan server:', fetchError);
-        throw new Error('Gagal terhubung dengan server pengenalan wajah');
+      }
+      
+      // Determine best result
+      let finalResult = null;
+      if (arcfaceResult && arcfaceResult.success && arcfaceResult.is_match) {
+        finalResult = {
+          success: true,
+          match: {
+            userId: arcfaceResult.user_id,
+            name: arcfaceResult.user_name,
+            similarity: arcfaceResult.confidence,
+            timestamp: new Date().toISOString(),
+            method: 'ArcFace'
+          }
+        };
+      } else if (faceApiResult && faceApiResult.success) {
+        finalResult = {
+          ...faceApiResult,
+          match: {
+            ...faceApiResult.match,
+            method: 'Face-API.js'
+          }
+        };
+      }
+      
+      const globalEndTime = performance.now();
+      
+      // Update performance metrics
+      setPerformanceMetrics(prev => ({
+        detectionTime: prev?.detectionTime || 0,
+        totalTime: globalEndTime - globalStartTime
+      }));
+      
+      if (finalResult) {
+        setRecognitionResult(finalResult);
+      } else {
+        setRecognitionResult({
+          success: false,
+          error: 'Wajah tidak dikenali oleh kedua algoritma'
+        });
       }
     } catch (error: unknown) {
       console.error('Kesalahan pengenalan:', error);
@@ -624,6 +682,7 @@ export default function RecognizeFace() {
             <div className="space-y-2 mb-4">
               <p><span className="font-medium">Nama:</span> {recognitionResult.match.name}</p>
               <p><span className="font-medium">Kecocokan:</span> {(recognitionResult.match.similarity * 100).toFixed(2)}%</p>
+              <p><span className="font-medium">Algoritma:</span> {recognitionResult.match.method || 'Face-API.js'}</p>
               <p><span className="font-medium">Waktu:</span> {new Date(recognitionResult.match.timestamp).toLocaleString()}</p>
             </div>
             <div className="py-2 px-3 bg-muted rounded border-l-4 border-primary text-foreground">

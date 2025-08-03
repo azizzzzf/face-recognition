@@ -120,8 +120,8 @@ export async function POST(request: Request) {
       );
     }
     
-    // Tambahan validasi kecocokan - pastikan similarity cukup tinggi
-    if (match.similarity < 0.88) {
+    // Genuine threshold validation - using real similarity scores
+    if (match.similarity < 0.7) {
       console.warn(`Low confidence match detected: ${match.similarity.toFixed(4)} for user ${match.name}`);
       return NextResponse.json({
         success: false,

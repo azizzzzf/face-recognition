@@ -23,6 +23,11 @@ export type KnownFace = $Result.DefaultSelection<Prisma.$KnownFacePayload>
  * 
  */
 export type Attendance = $Result.DefaultSelection<Prisma.$AttendancePayload>
+/**
+ * Model BenchmarkResult
+ * 
+ */
+export type BenchmarkResult = $Result.DefaultSelection<Prisma.$BenchmarkResultPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -168,6 +173,16 @@ export class PrismaClient<
     * ```
     */
   get attendance(): Prisma.AttendanceDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.benchmarkResult`: Exposes CRUD operations for the **BenchmarkResult** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BenchmarkResults
+    * const benchmarkResults = await prisma.benchmarkResult.findMany()
+    * ```
+    */
+  get benchmarkResult(): Prisma.BenchmarkResultDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -609,7 +624,8 @@ export namespace Prisma {
 
   export const ModelName: {
     KnownFace: 'KnownFace',
-    Attendance: 'Attendance'
+    Attendance: 'Attendance',
+    BenchmarkResult: 'BenchmarkResult'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -628,7 +644,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "knownFace" | "attendance"
+      modelProps: "knownFace" | "attendance" | "benchmarkResult"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -780,6 +796,80 @@ export namespace Prisma {
           }
         }
       }
+      BenchmarkResult: {
+        payload: Prisma.$BenchmarkResultPayload<ExtArgs>
+        fields: Prisma.BenchmarkResultFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BenchmarkResultFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BenchmarkResultFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>
+          }
+          findFirst: {
+            args: Prisma.BenchmarkResultFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BenchmarkResultFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>
+          }
+          findMany: {
+            args: Prisma.BenchmarkResultFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>[]
+          }
+          create: {
+            args: Prisma.BenchmarkResultCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>
+          }
+          createMany: {
+            args: Prisma.BenchmarkResultCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BenchmarkResultCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>[]
+          }
+          delete: {
+            args: Prisma.BenchmarkResultDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>
+          }
+          update: {
+            args: Prisma.BenchmarkResultUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>
+          }
+          deleteMany: {
+            args: Prisma.BenchmarkResultDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BenchmarkResultUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BenchmarkResultUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>[]
+          }
+          upsert: {
+            args: Prisma.BenchmarkResultUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BenchmarkResultPayload>
+          }
+          aggregate: {
+            args: Prisma.BenchmarkResultAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBenchmarkResult>
+          }
+          groupBy: {
+            args: Prisma.BenchmarkResultGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BenchmarkResultGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BenchmarkResultCountArgs<ExtArgs>
+            result: $Utils.Optional<BenchmarkResultCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -866,6 +956,7 @@ export namespace Prisma {
   export type GlobalOmitConfig = {
     knownFace?: KnownFaceOmit
     attendance?: AttendanceOmit
+    benchmarkResult?: BenchmarkResultOmit
   }
 
   /* Types for Logging */
@@ -961,10 +1052,12 @@ export namespace Prisma {
 
   export type KnownFaceCountOutputType = {
     Attendance: number
+    BenchmarkResults: number
   }
 
   export type KnownFaceCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Attendance?: boolean | KnownFaceCountOutputTypeCountAttendanceArgs
+    BenchmarkResults?: boolean | KnownFaceCountOutputTypeCountBenchmarkResultsArgs
   }
 
   // Custom InputTypes
@@ -985,6 +1078,13 @@ export namespace Prisma {
     where?: AttendanceWhereInput
   }
 
+  /**
+   * KnownFaceCountOutputType without action
+   */
+  export type KnownFaceCountOutputTypeCountBenchmarkResultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BenchmarkResultWhereInput
+  }
+
 
   /**
    * Models
@@ -1003,11 +1103,13 @@ export namespace Prisma {
   }
 
   export type KnownFaceAvgAggregateOutputType = {
-    descriptor: number | null
+    faceApiDescriptor: number | null
+    arcfaceDescriptor: number | null
   }
 
   export type KnownFaceSumAggregateOutputType = {
-    descriptor: number[]
+    faceApiDescriptor: number[]
+    arcfaceDescriptor: number[]
   }
 
   export type KnownFaceMinAggregateOutputType = {
@@ -1023,17 +1125,21 @@ export namespace Prisma {
   export type KnownFaceCountAggregateOutputType = {
     id: number
     name: number
-    descriptor: number
+    faceApiDescriptor: number
+    arcfaceDescriptor: number
+    enrollmentImages: number
     _all: number
   }
 
 
   export type KnownFaceAvgAggregateInputType = {
-    descriptor?: true
+    faceApiDescriptor?: true
+    arcfaceDescriptor?: true
   }
 
   export type KnownFaceSumAggregateInputType = {
-    descriptor?: true
+    faceApiDescriptor?: true
+    arcfaceDescriptor?: true
   }
 
   export type KnownFaceMinAggregateInputType = {
@@ -1049,7 +1155,9 @@ export namespace Prisma {
   export type KnownFaceCountAggregateInputType = {
     id?: true
     name?: true
-    descriptor?: true
+    faceApiDescriptor?: true
+    arcfaceDescriptor?: true
+    enrollmentImages?: true
     _all?: true
   }
 
@@ -1142,7 +1250,9 @@ export namespace Prisma {
   export type KnownFaceGroupByOutputType = {
     id: string
     name: string
-    descriptor: number[]
+    faceApiDescriptor: number[]
+    arcfaceDescriptor: number[]
+    enrollmentImages: JsonValue
     _count: KnownFaceCountAggregateOutputType | null
     _avg: KnownFaceAvgAggregateOutputType | null
     _sum: KnownFaceSumAggregateOutputType | null
@@ -1167,32 +1277,42 @@ export namespace Prisma {
   export type KnownFaceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    descriptor?: boolean
+    faceApiDescriptor?: boolean
+    arcfaceDescriptor?: boolean
+    enrollmentImages?: boolean
     Attendance?: boolean | KnownFace$AttendanceArgs<ExtArgs>
+    BenchmarkResults?: boolean | KnownFace$BenchmarkResultsArgs<ExtArgs>
     _count?: boolean | KnownFaceCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["knownFace"]>
 
   export type KnownFaceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    descriptor?: boolean
+    faceApiDescriptor?: boolean
+    arcfaceDescriptor?: boolean
+    enrollmentImages?: boolean
   }, ExtArgs["result"]["knownFace"]>
 
   export type KnownFaceSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    descriptor?: boolean
+    faceApiDescriptor?: boolean
+    arcfaceDescriptor?: boolean
+    enrollmentImages?: boolean
   }, ExtArgs["result"]["knownFace"]>
 
   export type KnownFaceSelectScalar = {
     id?: boolean
     name?: boolean
-    descriptor?: boolean
+    faceApiDescriptor?: boolean
+    arcfaceDescriptor?: boolean
+    enrollmentImages?: boolean
   }
 
-  export type KnownFaceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "descriptor", ExtArgs["result"]["knownFace"]>
+  export type KnownFaceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "faceApiDescriptor" | "arcfaceDescriptor" | "enrollmentImages", ExtArgs["result"]["knownFace"]>
   export type KnownFaceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     Attendance?: boolean | KnownFace$AttendanceArgs<ExtArgs>
+    BenchmarkResults?: boolean | KnownFace$BenchmarkResultsArgs<ExtArgs>
     _count?: boolean | KnownFaceCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type KnownFaceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1202,11 +1322,14 @@ export namespace Prisma {
     name: "KnownFace"
     objects: {
       Attendance: Prisma.$AttendancePayload<ExtArgs>[]
+      BenchmarkResults: Prisma.$BenchmarkResultPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
-      descriptor: number[]
+      faceApiDescriptor: number[]
+      arcfaceDescriptor: number[]
+      enrollmentImages: Prisma.JsonValue
     }, ExtArgs["result"]["knownFace"]>
     composites: {}
   }
@@ -1602,6 +1725,7 @@ export namespace Prisma {
   export interface Prisma__KnownFaceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     Attendance<T extends KnownFace$AttendanceArgs<ExtArgs> = {}>(args?: Subset<T, KnownFace$AttendanceArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    BenchmarkResults<T extends KnownFace$BenchmarkResultsArgs<ExtArgs> = {}>(args?: Subset<T, KnownFace$BenchmarkResultsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1633,7 +1757,9 @@ export namespace Prisma {
   interface KnownFaceFieldRefs {
     readonly id: FieldRef<"KnownFace", 'String'>
     readonly name: FieldRef<"KnownFace", 'String'>
-    readonly descriptor: FieldRef<"KnownFace", 'Float[]'>
+    readonly faceApiDescriptor: FieldRef<"KnownFace", 'Float[]'>
+    readonly arcfaceDescriptor: FieldRef<"KnownFace", 'Float[]'>
+    readonly enrollmentImages: FieldRef<"KnownFace", 'Json'>
   }
     
 
@@ -2046,6 +2172,30 @@ export namespace Prisma {
   }
 
   /**
+   * KnownFace.BenchmarkResults
+   */
+  export type KnownFace$BenchmarkResultsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    where?: BenchmarkResultWhereInput
+    orderBy?: BenchmarkResultOrderByWithRelationInput | BenchmarkResultOrderByWithRelationInput[]
+    cursor?: BenchmarkResultWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BenchmarkResultScalarFieldEnum | BenchmarkResultScalarFieldEnum[]
+  }
+
+  /**
    * KnownFace without action
    */
   export type KnownFaceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2093,6 +2243,7 @@ export namespace Prisma {
     userId: string | null
     similarity: number | null
     latencyMs: number | null
+    model: string | null
     createdAt: Date | null
   }
 
@@ -2101,6 +2252,7 @@ export namespace Prisma {
     userId: string | null
     similarity: number | null
     latencyMs: number | null
+    model: string | null
     createdAt: Date | null
   }
 
@@ -2109,6 +2261,7 @@ export namespace Prisma {
     userId: number
     similarity: number
     latencyMs: number
+    model: number
     createdAt: number
     _all: number
   }
@@ -2131,6 +2284,7 @@ export namespace Prisma {
     userId?: true
     similarity?: true
     latencyMs?: true
+    model?: true
     createdAt?: true
   }
 
@@ -2139,6 +2293,7 @@ export namespace Prisma {
     userId?: true
     similarity?: true
     latencyMs?: true
+    model?: true
     createdAt?: true
   }
 
@@ -2147,6 +2302,7 @@ export namespace Prisma {
     userId?: true
     similarity?: true
     latencyMs?: true
+    model?: true
     createdAt?: true
     _all?: true
   }
@@ -2242,6 +2398,7 @@ export namespace Prisma {
     userId: string
     similarity: number
     latencyMs: number
+    model: string
     createdAt: Date
     _count: AttendanceCountAggregateOutputType | null
     _avg: AttendanceAvgAggregateOutputType | null
@@ -2269,6 +2426,7 @@ export namespace Prisma {
     userId?: boolean
     similarity?: boolean
     latencyMs?: boolean
+    model?: boolean
     createdAt?: boolean
     user?: boolean | KnownFaceDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
@@ -2278,6 +2436,7 @@ export namespace Prisma {
     userId?: boolean
     similarity?: boolean
     latencyMs?: boolean
+    model?: boolean
     createdAt?: boolean
     user?: boolean | KnownFaceDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
@@ -2287,6 +2446,7 @@ export namespace Prisma {
     userId?: boolean
     similarity?: boolean
     latencyMs?: boolean
+    model?: boolean
     createdAt?: boolean
     user?: boolean | KnownFaceDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
@@ -2296,10 +2456,11 @@ export namespace Prisma {
     userId?: boolean
     similarity?: boolean
     latencyMs?: boolean
+    model?: boolean
     createdAt?: boolean
   }
 
-  export type AttendanceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "similarity" | "latencyMs" | "createdAt", ExtArgs["result"]["attendance"]>
+  export type AttendanceOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "similarity" | "latencyMs" | "model" | "createdAt", ExtArgs["result"]["attendance"]>
   export type AttendanceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | KnownFaceDefaultArgs<ExtArgs>
   }
@@ -2320,6 +2481,7 @@ export namespace Prisma {
       userId: string
       similarity: number
       latencyMs: number
+      model: string
       createdAt: Date
     }, ExtArgs["result"]["attendance"]>
     composites: {}
@@ -2749,6 +2911,7 @@ export namespace Prisma {
     readonly userId: FieldRef<"Attendance", 'String'>
     readonly similarity: FieldRef<"Attendance", 'Float'>
     readonly latencyMs: FieldRef<"Attendance", 'Float'>
+    readonly model: FieldRef<"Attendance", 'String'>
     readonly createdAt: FieldRef<"Attendance", 'DateTime'>
   }
     
@@ -3165,6 +3328,1153 @@ export namespace Prisma {
 
 
   /**
+   * Model BenchmarkResult
+   */
+
+  export type AggregateBenchmarkResult = {
+    _count: BenchmarkResultCountAggregateOutputType | null
+    _avg: BenchmarkResultAvgAggregateOutputType | null
+    _sum: BenchmarkResultSumAggregateOutputType | null
+    _min: BenchmarkResultMinAggregateOutputType | null
+    _max: BenchmarkResultMaxAggregateOutputType | null
+  }
+
+  export type BenchmarkResultAvgAggregateOutputType = {
+    id: number | null
+    faceApiAccuracy: number | null
+    faceApiLatency: number | null
+    arcfaceAccuracy: number | null
+    arcfaceLatency: number | null
+  }
+
+  export type BenchmarkResultSumAggregateOutputType = {
+    id: bigint | null
+    faceApiAccuracy: number | null
+    faceApiLatency: number | null
+    arcfaceAccuracy: number | null
+    arcfaceLatency: number | null
+  }
+
+  export type BenchmarkResultMinAggregateOutputType = {
+    id: bigint | null
+    userId: string | null
+    faceApiAccuracy: number | null
+    faceApiLatency: number | null
+    arcfaceAccuracy: number | null
+    arcfaceLatency: number | null
+    testImage: string | null
+    createdAt: Date | null
+  }
+
+  export type BenchmarkResultMaxAggregateOutputType = {
+    id: bigint | null
+    userId: string | null
+    faceApiAccuracy: number | null
+    faceApiLatency: number | null
+    arcfaceAccuracy: number | null
+    arcfaceLatency: number | null
+    testImage: string | null
+    createdAt: Date | null
+  }
+
+  export type BenchmarkResultCountAggregateOutputType = {
+    id: number
+    userId: number
+    faceApiAccuracy: number
+    faceApiLatency: number
+    arcfaceAccuracy: number
+    arcfaceLatency: number
+    testImage: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type BenchmarkResultAvgAggregateInputType = {
+    id?: true
+    faceApiAccuracy?: true
+    faceApiLatency?: true
+    arcfaceAccuracy?: true
+    arcfaceLatency?: true
+  }
+
+  export type BenchmarkResultSumAggregateInputType = {
+    id?: true
+    faceApiAccuracy?: true
+    faceApiLatency?: true
+    arcfaceAccuracy?: true
+    arcfaceLatency?: true
+  }
+
+  export type BenchmarkResultMinAggregateInputType = {
+    id?: true
+    userId?: true
+    faceApiAccuracy?: true
+    faceApiLatency?: true
+    arcfaceAccuracy?: true
+    arcfaceLatency?: true
+    testImage?: true
+    createdAt?: true
+  }
+
+  export type BenchmarkResultMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    faceApiAccuracy?: true
+    faceApiLatency?: true
+    arcfaceAccuracy?: true
+    arcfaceLatency?: true
+    testImage?: true
+    createdAt?: true
+  }
+
+  export type BenchmarkResultCountAggregateInputType = {
+    id?: true
+    userId?: true
+    faceApiAccuracy?: true
+    faceApiLatency?: true
+    arcfaceAccuracy?: true
+    arcfaceLatency?: true
+    testImage?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type BenchmarkResultAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BenchmarkResult to aggregate.
+     */
+    where?: BenchmarkResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BenchmarkResults to fetch.
+     */
+    orderBy?: BenchmarkResultOrderByWithRelationInput | BenchmarkResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BenchmarkResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BenchmarkResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BenchmarkResults.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BenchmarkResults
+    **/
+    _count?: true | BenchmarkResultCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: BenchmarkResultAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BenchmarkResultSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BenchmarkResultMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BenchmarkResultMaxAggregateInputType
+  }
+
+  export type GetBenchmarkResultAggregateType<T extends BenchmarkResultAggregateArgs> = {
+        [P in keyof T & keyof AggregateBenchmarkResult]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBenchmarkResult[P]>
+      : GetScalarType<T[P], AggregateBenchmarkResult[P]>
+  }
+
+
+
+
+  export type BenchmarkResultGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BenchmarkResultWhereInput
+    orderBy?: BenchmarkResultOrderByWithAggregationInput | BenchmarkResultOrderByWithAggregationInput[]
+    by: BenchmarkResultScalarFieldEnum[] | BenchmarkResultScalarFieldEnum
+    having?: BenchmarkResultScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BenchmarkResultCountAggregateInputType | true
+    _avg?: BenchmarkResultAvgAggregateInputType
+    _sum?: BenchmarkResultSumAggregateInputType
+    _min?: BenchmarkResultMinAggregateInputType
+    _max?: BenchmarkResultMaxAggregateInputType
+  }
+
+  export type BenchmarkResultGroupByOutputType = {
+    id: bigint
+    userId: string
+    faceApiAccuracy: number | null
+    faceApiLatency: number | null
+    arcfaceAccuracy: number | null
+    arcfaceLatency: number | null
+    testImage: string
+    createdAt: Date
+    _count: BenchmarkResultCountAggregateOutputType | null
+    _avg: BenchmarkResultAvgAggregateOutputType | null
+    _sum: BenchmarkResultSumAggregateOutputType | null
+    _min: BenchmarkResultMinAggregateOutputType | null
+    _max: BenchmarkResultMaxAggregateOutputType | null
+  }
+
+  type GetBenchmarkResultGroupByPayload<T extends BenchmarkResultGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BenchmarkResultGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BenchmarkResultGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BenchmarkResultGroupByOutputType[P]>
+            : GetScalarType<T[P], BenchmarkResultGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BenchmarkResultSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    faceApiAccuracy?: boolean
+    faceApiLatency?: boolean
+    arcfaceAccuracy?: boolean
+    arcfaceLatency?: boolean
+    testImage?: boolean
+    createdAt?: boolean
+    user?: boolean | KnownFaceDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["benchmarkResult"]>
+
+  export type BenchmarkResultSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    faceApiAccuracy?: boolean
+    faceApiLatency?: boolean
+    arcfaceAccuracy?: boolean
+    arcfaceLatency?: boolean
+    testImage?: boolean
+    createdAt?: boolean
+    user?: boolean | KnownFaceDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["benchmarkResult"]>
+
+  export type BenchmarkResultSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    faceApiAccuracy?: boolean
+    faceApiLatency?: boolean
+    arcfaceAccuracy?: boolean
+    arcfaceLatency?: boolean
+    testImage?: boolean
+    createdAt?: boolean
+    user?: boolean | KnownFaceDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["benchmarkResult"]>
+
+  export type BenchmarkResultSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    faceApiAccuracy?: boolean
+    faceApiLatency?: boolean
+    arcfaceAccuracy?: boolean
+    arcfaceLatency?: boolean
+    testImage?: boolean
+    createdAt?: boolean
+  }
+
+  export type BenchmarkResultOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "faceApiAccuracy" | "faceApiLatency" | "arcfaceAccuracy" | "arcfaceLatency" | "testImage" | "createdAt", ExtArgs["result"]["benchmarkResult"]>
+  export type BenchmarkResultInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | KnownFaceDefaultArgs<ExtArgs>
+  }
+  export type BenchmarkResultIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | KnownFaceDefaultArgs<ExtArgs>
+  }
+  export type BenchmarkResultIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | KnownFaceDefaultArgs<ExtArgs>
+  }
+
+  export type $BenchmarkResultPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BenchmarkResult"
+    objects: {
+      user: Prisma.$KnownFacePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      userId: string
+      faceApiAccuracy: number | null
+      faceApiLatency: number | null
+      arcfaceAccuracy: number | null
+      arcfaceLatency: number | null
+      testImage: string
+      createdAt: Date
+    }, ExtArgs["result"]["benchmarkResult"]>
+    composites: {}
+  }
+
+  type BenchmarkResultGetPayload<S extends boolean | null | undefined | BenchmarkResultDefaultArgs> = $Result.GetResult<Prisma.$BenchmarkResultPayload, S>
+
+  type BenchmarkResultCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BenchmarkResultFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BenchmarkResultCountAggregateInputType | true
+    }
+
+  export interface BenchmarkResultDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BenchmarkResult'], meta: { name: 'BenchmarkResult' } }
+    /**
+     * Find zero or one BenchmarkResult that matches the filter.
+     * @param {BenchmarkResultFindUniqueArgs} args - Arguments to find a BenchmarkResult
+     * @example
+     * // Get one BenchmarkResult
+     * const benchmarkResult = await prisma.benchmarkResult.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BenchmarkResultFindUniqueArgs>(args: SelectSubset<T, BenchmarkResultFindUniqueArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BenchmarkResult that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BenchmarkResultFindUniqueOrThrowArgs} args - Arguments to find a BenchmarkResult
+     * @example
+     * // Get one BenchmarkResult
+     * const benchmarkResult = await prisma.benchmarkResult.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BenchmarkResultFindUniqueOrThrowArgs>(args: SelectSubset<T, BenchmarkResultFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BenchmarkResult that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BenchmarkResultFindFirstArgs} args - Arguments to find a BenchmarkResult
+     * @example
+     * // Get one BenchmarkResult
+     * const benchmarkResult = await prisma.benchmarkResult.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BenchmarkResultFindFirstArgs>(args?: SelectSubset<T, BenchmarkResultFindFirstArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BenchmarkResult that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BenchmarkResultFindFirstOrThrowArgs} args - Arguments to find a BenchmarkResult
+     * @example
+     * // Get one BenchmarkResult
+     * const benchmarkResult = await prisma.benchmarkResult.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BenchmarkResultFindFirstOrThrowArgs>(args?: SelectSubset<T, BenchmarkResultFindFirstOrThrowArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BenchmarkResults that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BenchmarkResultFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BenchmarkResults
+     * const benchmarkResults = await prisma.benchmarkResult.findMany()
+     * 
+     * // Get first 10 BenchmarkResults
+     * const benchmarkResults = await prisma.benchmarkResult.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const benchmarkResultWithIdOnly = await prisma.benchmarkResult.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BenchmarkResultFindManyArgs>(args?: SelectSubset<T, BenchmarkResultFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BenchmarkResult.
+     * @param {BenchmarkResultCreateArgs} args - Arguments to create a BenchmarkResult.
+     * @example
+     * // Create one BenchmarkResult
+     * const BenchmarkResult = await prisma.benchmarkResult.create({
+     *   data: {
+     *     // ... data to create a BenchmarkResult
+     *   }
+     * })
+     * 
+     */
+    create<T extends BenchmarkResultCreateArgs>(args: SelectSubset<T, BenchmarkResultCreateArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BenchmarkResults.
+     * @param {BenchmarkResultCreateManyArgs} args - Arguments to create many BenchmarkResults.
+     * @example
+     * // Create many BenchmarkResults
+     * const benchmarkResult = await prisma.benchmarkResult.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BenchmarkResultCreateManyArgs>(args?: SelectSubset<T, BenchmarkResultCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BenchmarkResults and returns the data saved in the database.
+     * @param {BenchmarkResultCreateManyAndReturnArgs} args - Arguments to create many BenchmarkResults.
+     * @example
+     * // Create many BenchmarkResults
+     * const benchmarkResult = await prisma.benchmarkResult.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BenchmarkResults and only return the `id`
+     * const benchmarkResultWithIdOnly = await prisma.benchmarkResult.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BenchmarkResultCreateManyAndReturnArgs>(args?: SelectSubset<T, BenchmarkResultCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BenchmarkResult.
+     * @param {BenchmarkResultDeleteArgs} args - Arguments to delete one BenchmarkResult.
+     * @example
+     * // Delete one BenchmarkResult
+     * const BenchmarkResult = await prisma.benchmarkResult.delete({
+     *   where: {
+     *     // ... filter to delete one BenchmarkResult
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BenchmarkResultDeleteArgs>(args: SelectSubset<T, BenchmarkResultDeleteArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BenchmarkResult.
+     * @param {BenchmarkResultUpdateArgs} args - Arguments to update one BenchmarkResult.
+     * @example
+     * // Update one BenchmarkResult
+     * const benchmarkResult = await prisma.benchmarkResult.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BenchmarkResultUpdateArgs>(args: SelectSubset<T, BenchmarkResultUpdateArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BenchmarkResults.
+     * @param {BenchmarkResultDeleteManyArgs} args - Arguments to filter BenchmarkResults to delete.
+     * @example
+     * // Delete a few BenchmarkResults
+     * const { count } = await prisma.benchmarkResult.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BenchmarkResultDeleteManyArgs>(args?: SelectSubset<T, BenchmarkResultDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BenchmarkResults.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BenchmarkResultUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BenchmarkResults
+     * const benchmarkResult = await prisma.benchmarkResult.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BenchmarkResultUpdateManyArgs>(args: SelectSubset<T, BenchmarkResultUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BenchmarkResults and returns the data updated in the database.
+     * @param {BenchmarkResultUpdateManyAndReturnArgs} args - Arguments to update many BenchmarkResults.
+     * @example
+     * // Update many BenchmarkResults
+     * const benchmarkResult = await prisma.benchmarkResult.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BenchmarkResults and only return the `id`
+     * const benchmarkResultWithIdOnly = await prisma.benchmarkResult.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BenchmarkResultUpdateManyAndReturnArgs>(args: SelectSubset<T, BenchmarkResultUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BenchmarkResult.
+     * @param {BenchmarkResultUpsertArgs} args - Arguments to update or create a BenchmarkResult.
+     * @example
+     * // Update or create a BenchmarkResult
+     * const benchmarkResult = await prisma.benchmarkResult.upsert({
+     *   create: {
+     *     // ... data to create a BenchmarkResult
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BenchmarkResult we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BenchmarkResultUpsertArgs>(args: SelectSubset<T, BenchmarkResultUpsertArgs<ExtArgs>>): Prisma__BenchmarkResultClient<$Result.GetResult<Prisma.$BenchmarkResultPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BenchmarkResults.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BenchmarkResultCountArgs} args - Arguments to filter BenchmarkResults to count.
+     * @example
+     * // Count the number of BenchmarkResults
+     * const count = await prisma.benchmarkResult.count({
+     *   where: {
+     *     // ... the filter for the BenchmarkResults we want to count
+     *   }
+     * })
+    **/
+    count<T extends BenchmarkResultCountArgs>(
+      args?: Subset<T, BenchmarkResultCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BenchmarkResultCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BenchmarkResult.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BenchmarkResultAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BenchmarkResultAggregateArgs>(args: Subset<T, BenchmarkResultAggregateArgs>): Prisma.PrismaPromise<GetBenchmarkResultAggregateType<T>>
+
+    /**
+     * Group by BenchmarkResult.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BenchmarkResultGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BenchmarkResultGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BenchmarkResultGroupByArgs['orderBy'] }
+        : { orderBy?: BenchmarkResultGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BenchmarkResultGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBenchmarkResultGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BenchmarkResult model
+   */
+  readonly fields: BenchmarkResultFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BenchmarkResult.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BenchmarkResultClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends KnownFaceDefaultArgs<ExtArgs> = {}>(args?: Subset<T, KnownFaceDefaultArgs<ExtArgs>>): Prisma__KnownFaceClient<$Result.GetResult<Prisma.$KnownFacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BenchmarkResult model
+   */
+  interface BenchmarkResultFieldRefs {
+    readonly id: FieldRef<"BenchmarkResult", 'BigInt'>
+    readonly userId: FieldRef<"BenchmarkResult", 'String'>
+    readonly faceApiAccuracy: FieldRef<"BenchmarkResult", 'Float'>
+    readonly faceApiLatency: FieldRef<"BenchmarkResult", 'Float'>
+    readonly arcfaceAccuracy: FieldRef<"BenchmarkResult", 'Float'>
+    readonly arcfaceLatency: FieldRef<"BenchmarkResult", 'Float'>
+    readonly testImage: FieldRef<"BenchmarkResult", 'String'>
+    readonly createdAt: FieldRef<"BenchmarkResult", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BenchmarkResult findUnique
+   */
+  export type BenchmarkResultFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * Filter, which BenchmarkResult to fetch.
+     */
+    where: BenchmarkResultWhereUniqueInput
+  }
+
+  /**
+   * BenchmarkResult findUniqueOrThrow
+   */
+  export type BenchmarkResultFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * Filter, which BenchmarkResult to fetch.
+     */
+    where: BenchmarkResultWhereUniqueInput
+  }
+
+  /**
+   * BenchmarkResult findFirst
+   */
+  export type BenchmarkResultFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * Filter, which BenchmarkResult to fetch.
+     */
+    where?: BenchmarkResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BenchmarkResults to fetch.
+     */
+    orderBy?: BenchmarkResultOrderByWithRelationInput | BenchmarkResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BenchmarkResults.
+     */
+    cursor?: BenchmarkResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BenchmarkResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BenchmarkResults.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BenchmarkResults.
+     */
+    distinct?: BenchmarkResultScalarFieldEnum | BenchmarkResultScalarFieldEnum[]
+  }
+
+  /**
+   * BenchmarkResult findFirstOrThrow
+   */
+  export type BenchmarkResultFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * Filter, which BenchmarkResult to fetch.
+     */
+    where?: BenchmarkResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BenchmarkResults to fetch.
+     */
+    orderBy?: BenchmarkResultOrderByWithRelationInput | BenchmarkResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BenchmarkResults.
+     */
+    cursor?: BenchmarkResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BenchmarkResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BenchmarkResults.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BenchmarkResults.
+     */
+    distinct?: BenchmarkResultScalarFieldEnum | BenchmarkResultScalarFieldEnum[]
+  }
+
+  /**
+   * BenchmarkResult findMany
+   */
+  export type BenchmarkResultFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * Filter, which BenchmarkResults to fetch.
+     */
+    where?: BenchmarkResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BenchmarkResults to fetch.
+     */
+    orderBy?: BenchmarkResultOrderByWithRelationInput | BenchmarkResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BenchmarkResults.
+     */
+    cursor?: BenchmarkResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BenchmarkResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BenchmarkResults.
+     */
+    skip?: number
+    distinct?: BenchmarkResultScalarFieldEnum | BenchmarkResultScalarFieldEnum[]
+  }
+
+  /**
+   * BenchmarkResult create
+   */
+  export type BenchmarkResultCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BenchmarkResult.
+     */
+    data: XOR<BenchmarkResultCreateInput, BenchmarkResultUncheckedCreateInput>
+  }
+
+  /**
+   * BenchmarkResult createMany
+   */
+  export type BenchmarkResultCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BenchmarkResults.
+     */
+    data: BenchmarkResultCreateManyInput | BenchmarkResultCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BenchmarkResult createManyAndReturn
+   */
+  export type BenchmarkResultCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * The data used to create many BenchmarkResults.
+     */
+    data: BenchmarkResultCreateManyInput | BenchmarkResultCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BenchmarkResult update
+   */
+  export type BenchmarkResultUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BenchmarkResult.
+     */
+    data: XOR<BenchmarkResultUpdateInput, BenchmarkResultUncheckedUpdateInput>
+    /**
+     * Choose, which BenchmarkResult to update.
+     */
+    where: BenchmarkResultWhereUniqueInput
+  }
+
+  /**
+   * BenchmarkResult updateMany
+   */
+  export type BenchmarkResultUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BenchmarkResults.
+     */
+    data: XOR<BenchmarkResultUpdateManyMutationInput, BenchmarkResultUncheckedUpdateManyInput>
+    /**
+     * Filter which BenchmarkResults to update
+     */
+    where?: BenchmarkResultWhereInput
+    /**
+     * Limit how many BenchmarkResults to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BenchmarkResult updateManyAndReturn
+   */
+  export type BenchmarkResultUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * The data used to update BenchmarkResults.
+     */
+    data: XOR<BenchmarkResultUpdateManyMutationInput, BenchmarkResultUncheckedUpdateManyInput>
+    /**
+     * Filter which BenchmarkResults to update
+     */
+    where?: BenchmarkResultWhereInput
+    /**
+     * Limit how many BenchmarkResults to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BenchmarkResult upsert
+   */
+  export type BenchmarkResultUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BenchmarkResult to update in case it exists.
+     */
+    where: BenchmarkResultWhereUniqueInput
+    /**
+     * In case the BenchmarkResult found by the `where` argument doesn't exist, create a new BenchmarkResult with this data.
+     */
+    create: XOR<BenchmarkResultCreateInput, BenchmarkResultUncheckedCreateInput>
+    /**
+     * In case the BenchmarkResult was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BenchmarkResultUpdateInput, BenchmarkResultUncheckedUpdateInput>
+  }
+
+  /**
+   * BenchmarkResult delete
+   */
+  export type BenchmarkResultDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+    /**
+     * Filter which BenchmarkResult to delete.
+     */
+    where: BenchmarkResultWhereUniqueInput
+  }
+
+  /**
+   * BenchmarkResult deleteMany
+   */
+  export type BenchmarkResultDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BenchmarkResults to delete
+     */
+    where?: BenchmarkResultWhereInput
+    /**
+     * Limit how many BenchmarkResults to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BenchmarkResult without action
+   */
+  export type BenchmarkResultDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BenchmarkResult
+     */
+    select?: BenchmarkResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BenchmarkResult
+     */
+    omit?: BenchmarkResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BenchmarkResultInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -3181,7 +4491,9 @@ export namespace Prisma {
   export const KnownFaceScalarFieldEnum: {
     id: 'id',
     name: 'name',
-    descriptor: 'descriptor'
+    faceApiDescriptor: 'faceApiDescriptor',
+    arcfaceDescriptor: 'arcfaceDescriptor',
+    enrollmentImages: 'enrollmentImages'
   };
 
   export type KnownFaceScalarFieldEnum = (typeof KnownFaceScalarFieldEnum)[keyof typeof KnownFaceScalarFieldEnum]
@@ -3192,10 +4504,25 @@ export namespace Prisma {
     userId: 'userId',
     similarity: 'similarity',
     latencyMs: 'latencyMs',
+    model: 'model',
     createdAt: 'createdAt'
   };
 
   export type AttendanceScalarFieldEnum = (typeof AttendanceScalarFieldEnum)[keyof typeof AttendanceScalarFieldEnum]
+
+
+  export const BenchmarkResultScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    faceApiAccuracy: 'faceApiAccuracy',
+    faceApiLatency: 'faceApiLatency',
+    arcfaceAccuracy: 'arcfaceAccuracy',
+    arcfaceLatency: 'arcfaceLatency',
+    testImage: 'testImage',
+    createdAt: 'createdAt'
+  };
+
+  export type BenchmarkResultScalarFieldEnum = (typeof BenchmarkResultScalarFieldEnum)[keyof typeof BenchmarkResultScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -3206,12 +4533,36 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
   };
 
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+  export const NullsOrder: {
+    first: 'first',
+    last: 'last'
+  };
+
+  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
   /**
@@ -3244,6 +4595,20 @@ export namespace Prisma {
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -3298,15 +4663,21 @@ export namespace Prisma {
     NOT?: KnownFaceWhereInput | KnownFaceWhereInput[]
     id?: StringFilter<"KnownFace"> | string
     name?: StringFilter<"KnownFace"> | string
-    descriptor?: FloatNullableListFilter<"KnownFace">
+    faceApiDescriptor?: FloatNullableListFilter<"KnownFace">
+    arcfaceDescriptor?: FloatNullableListFilter<"KnownFace">
+    enrollmentImages?: JsonFilter<"KnownFace">
     Attendance?: AttendanceListRelationFilter
+    BenchmarkResults?: BenchmarkResultListRelationFilter
   }
 
   export type KnownFaceOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    descriptor?: SortOrder
+    faceApiDescriptor?: SortOrder
+    arcfaceDescriptor?: SortOrder
+    enrollmentImages?: SortOrder
     Attendance?: AttendanceOrderByRelationAggregateInput
+    BenchmarkResults?: BenchmarkResultOrderByRelationAggregateInput
   }
 
   export type KnownFaceWhereUniqueInput = Prisma.AtLeast<{
@@ -3315,14 +4686,19 @@ export namespace Prisma {
     OR?: KnownFaceWhereInput[]
     NOT?: KnownFaceWhereInput | KnownFaceWhereInput[]
     name?: StringFilter<"KnownFace"> | string
-    descriptor?: FloatNullableListFilter<"KnownFace">
+    faceApiDescriptor?: FloatNullableListFilter<"KnownFace">
+    arcfaceDescriptor?: FloatNullableListFilter<"KnownFace">
+    enrollmentImages?: JsonFilter<"KnownFace">
     Attendance?: AttendanceListRelationFilter
+    BenchmarkResults?: BenchmarkResultListRelationFilter
   }, "id">
 
   export type KnownFaceOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    descriptor?: SortOrder
+    faceApiDescriptor?: SortOrder
+    arcfaceDescriptor?: SortOrder
+    enrollmentImages?: SortOrder
     _count?: KnownFaceCountOrderByAggregateInput
     _avg?: KnownFaceAvgOrderByAggregateInput
     _max?: KnownFaceMaxOrderByAggregateInput
@@ -3336,7 +4712,9 @@ export namespace Prisma {
     NOT?: KnownFaceScalarWhereWithAggregatesInput | KnownFaceScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"KnownFace"> | string
     name?: StringWithAggregatesFilter<"KnownFace"> | string
-    descriptor?: FloatNullableListFilter<"KnownFace">
+    faceApiDescriptor?: FloatNullableListFilter<"KnownFace">
+    arcfaceDescriptor?: FloatNullableListFilter<"KnownFace">
+    enrollmentImages?: JsonWithAggregatesFilter<"KnownFace">
   }
 
   export type AttendanceWhereInput = {
@@ -3347,6 +4725,7 @@ export namespace Prisma {
     userId?: StringFilter<"Attendance"> | string
     similarity?: FloatFilter<"Attendance"> | number
     latencyMs?: FloatFilter<"Attendance"> | number
+    model?: StringFilter<"Attendance"> | string
     createdAt?: DateTimeFilter<"Attendance"> | Date | string
     user?: XOR<KnownFaceScalarRelationFilter, KnownFaceWhereInput>
   }
@@ -3356,6 +4735,7 @@ export namespace Prisma {
     userId?: SortOrder
     similarity?: SortOrder
     latencyMs?: SortOrder
+    model?: SortOrder
     createdAt?: SortOrder
     user?: KnownFaceOrderByWithRelationInput
   }
@@ -3368,6 +4748,7 @@ export namespace Prisma {
     userId?: StringFilter<"Attendance"> | string
     similarity?: FloatFilter<"Attendance"> | number
     latencyMs?: FloatFilter<"Attendance"> | number
+    model?: StringFilter<"Attendance"> | string
     createdAt?: DateTimeFilter<"Attendance"> | Date | string
     user?: XOR<KnownFaceScalarRelationFilter, KnownFaceWhereInput>
   }, "id">
@@ -3377,6 +4758,7 @@ export namespace Prisma {
     userId?: SortOrder
     similarity?: SortOrder
     latencyMs?: SortOrder
+    model?: SortOrder
     createdAt?: SortOrder
     _count?: AttendanceCountOrderByAggregateInput
     _avg?: AttendanceAvgOrderByAggregateInput
@@ -3393,59 +4775,151 @@ export namespace Prisma {
     userId?: StringWithAggregatesFilter<"Attendance"> | string
     similarity?: FloatWithAggregatesFilter<"Attendance"> | number
     latencyMs?: FloatWithAggregatesFilter<"Attendance"> | number
+    model?: StringWithAggregatesFilter<"Attendance"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Attendance"> | Date | string
+  }
+
+  export type BenchmarkResultWhereInput = {
+    AND?: BenchmarkResultWhereInput | BenchmarkResultWhereInput[]
+    OR?: BenchmarkResultWhereInput[]
+    NOT?: BenchmarkResultWhereInput | BenchmarkResultWhereInput[]
+    id?: BigIntFilter<"BenchmarkResult"> | bigint | number
+    userId?: StringFilter<"BenchmarkResult"> | string
+    faceApiAccuracy?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    faceApiLatency?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    arcfaceAccuracy?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    arcfaceLatency?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    testImage?: StringFilter<"BenchmarkResult"> | string
+    createdAt?: DateTimeFilter<"BenchmarkResult"> | Date | string
+    user?: XOR<KnownFaceScalarRelationFilter, KnownFaceWhereInput>
+  }
+
+  export type BenchmarkResultOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    faceApiAccuracy?: SortOrderInput | SortOrder
+    faceApiLatency?: SortOrderInput | SortOrder
+    arcfaceAccuracy?: SortOrderInput | SortOrder
+    arcfaceLatency?: SortOrderInput | SortOrder
+    testImage?: SortOrder
+    createdAt?: SortOrder
+    user?: KnownFaceOrderByWithRelationInput
+  }
+
+  export type BenchmarkResultWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    AND?: BenchmarkResultWhereInput | BenchmarkResultWhereInput[]
+    OR?: BenchmarkResultWhereInput[]
+    NOT?: BenchmarkResultWhereInput | BenchmarkResultWhereInput[]
+    userId?: StringFilter<"BenchmarkResult"> | string
+    faceApiAccuracy?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    faceApiLatency?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    arcfaceAccuracy?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    arcfaceLatency?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    testImage?: StringFilter<"BenchmarkResult"> | string
+    createdAt?: DateTimeFilter<"BenchmarkResult"> | Date | string
+    user?: XOR<KnownFaceScalarRelationFilter, KnownFaceWhereInput>
+  }, "id">
+
+  export type BenchmarkResultOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    faceApiAccuracy?: SortOrderInput | SortOrder
+    faceApiLatency?: SortOrderInput | SortOrder
+    arcfaceAccuracy?: SortOrderInput | SortOrder
+    arcfaceLatency?: SortOrderInput | SortOrder
+    testImage?: SortOrder
+    createdAt?: SortOrder
+    _count?: BenchmarkResultCountOrderByAggregateInput
+    _avg?: BenchmarkResultAvgOrderByAggregateInput
+    _max?: BenchmarkResultMaxOrderByAggregateInput
+    _min?: BenchmarkResultMinOrderByAggregateInput
+    _sum?: BenchmarkResultSumOrderByAggregateInput
+  }
+
+  export type BenchmarkResultScalarWhereWithAggregatesInput = {
+    AND?: BenchmarkResultScalarWhereWithAggregatesInput | BenchmarkResultScalarWhereWithAggregatesInput[]
+    OR?: BenchmarkResultScalarWhereWithAggregatesInput[]
+    NOT?: BenchmarkResultScalarWhereWithAggregatesInput | BenchmarkResultScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"BenchmarkResult"> | bigint | number
+    userId?: StringWithAggregatesFilter<"BenchmarkResult"> | string
+    faceApiAccuracy?: FloatNullableWithAggregatesFilter<"BenchmarkResult"> | number | null
+    faceApiLatency?: FloatNullableWithAggregatesFilter<"BenchmarkResult"> | number | null
+    arcfaceAccuracy?: FloatNullableWithAggregatesFilter<"BenchmarkResult"> | number | null
+    arcfaceLatency?: FloatNullableWithAggregatesFilter<"BenchmarkResult"> | number | null
+    testImage?: StringWithAggregatesFilter<"BenchmarkResult"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"BenchmarkResult"> | Date | string
   }
 
   export type KnownFaceCreateInput = {
     id?: string
     name: string
-    descriptor?: KnownFaceCreatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceCreatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceCreatearcfaceDescriptorInput | number[]
+    enrollmentImages: JsonNullValueInput | InputJsonValue
     Attendance?: AttendanceCreateNestedManyWithoutUserInput
+    BenchmarkResults?: BenchmarkResultCreateNestedManyWithoutUserInput
   }
 
   export type KnownFaceUncheckedCreateInput = {
     id?: string
     name: string
-    descriptor?: KnownFaceCreatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceCreatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceCreatearcfaceDescriptorInput | number[]
+    enrollmentImages: JsonNullValueInput | InputJsonValue
     Attendance?: AttendanceUncheckedCreateNestedManyWithoutUserInput
+    BenchmarkResults?: BenchmarkResultUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type KnownFaceUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    descriptor?: KnownFaceUpdatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
     Attendance?: AttendanceUpdateManyWithoutUserNestedInput
+    BenchmarkResults?: BenchmarkResultUpdateManyWithoutUserNestedInput
   }
 
   export type KnownFaceUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    descriptor?: KnownFaceUpdatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
     Attendance?: AttendanceUncheckedUpdateManyWithoutUserNestedInput
+    BenchmarkResults?: BenchmarkResultUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type KnownFaceCreateManyInput = {
     id?: string
     name: string
-    descriptor?: KnownFaceCreatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceCreatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceCreatearcfaceDescriptorInput | number[]
+    enrollmentImages: JsonNullValueInput | InputJsonValue
   }
 
   export type KnownFaceUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    descriptor?: KnownFaceUpdatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
   }
 
   export type KnownFaceUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    descriptor?: KnownFaceUpdatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
   }
 
   export type AttendanceCreateInput = {
     id?: bigint | number
     similarity: number
     latencyMs: number
+    model?: string
     createdAt?: Date | string
     user: KnownFaceCreateNestedOneWithoutAttendanceInput
   }
@@ -3455,6 +4929,7 @@ export namespace Prisma {
     userId: string
     similarity: number
     latencyMs: number
+    model?: string
     createdAt?: Date | string
   }
 
@@ -3462,6 +4937,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     similarity?: FloatFieldUpdateOperationsInput | number
     latencyMs?: FloatFieldUpdateOperationsInput | number
+    model?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: KnownFaceUpdateOneRequiredWithoutAttendanceNestedInput
   }
@@ -3471,6 +4947,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     similarity?: FloatFieldUpdateOperationsInput | number
     latencyMs?: FloatFieldUpdateOperationsInput | number
+    model?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -3479,6 +4956,7 @@ export namespace Prisma {
     userId: string
     similarity: number
     latencyMs: number
+    model?: string
     createdAt?: Date | string
   }
 
@@ -3486,6 +4964,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     similarity?: FloatFieldUpdateOperationsInput | number
     latencyMs?: FloatFieldUpdateOperationsInput | number
+    model?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -3494,6 +4973,83 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     similarity?: FloatFieldUpdateOperationsInput | number
     latencyMs?: FloatFieldUpdateOperationsInput | number
+    model?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BenchmarkResultCreateInput = {
+    id?: bigint | number
+    faceApiAccuracy?: number | null
+    faceApiLatency?: number | null
+    arcfaceAccuracy?: number | null
+    arcfaceLatency?: number | null
+    testImage: string
+    createdAt?: Date | string
+    user: KnownFaceCreateNestedOneWithoutBenchmarkResultsInput
+  }
+
+  export type BenchmarkResultUncheckedCreateInput = {
+    id?: bigint | number
+    userId: string
+    faceApiAccuracy?: number | null
+    faceApiLatency?: number | null
+    arcfaceAccuracy?: number | null
+    arcfaceLatency?: number | null
+    testImage: string
+    createdAt?: Date | string
+  }
+
+  export type BenchmarkResultUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    faceApiAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    faceApiLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    testImage?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: KnownFaceUpdateOneRequiredWithoutBenchmarkResultsNestedInput
+  }
+
+  export type BenchmarkResultUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    userId?: StringFieldUpdateOperationsInput | string
+    faceApiAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    faceApiLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    testImage?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BenchmarkResultCreateManyInput = {
+    id?: bigint | number
+    userId: string
+    faceApiAccuracy?: number | null
+    faceApiLatency?: number | null
+    arcfaceAccuracy?: number | null
+    arcfaceLatency?: number | null
+    testImage: string
+    createdAt?: Date | string
+  }
+
+  export type BenchmarkResultUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    faceApiAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    faceApiLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    testImage?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BenchmarkResultUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    userId?: StringFieldUpdateOperationsInput | string
+    faceApiAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    faceApiLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    testImage?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -3519,6 +5075,29 @@ export namespace Prisma {
     hasSome?: number[] | ListFloatFieldRefInput<$PrismaModel>
     isEmpty?: boolean
   }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type AttendanceListRelationFilter = {
     every?: AttendanceWhereInput
@@ -3526,18 +5105,31 @@ export namespace Prisma {
     none?: AttendanceWhereInput
   }
 
+  export type BenchmarkResultListRelationFilter = {
+    every?: BenchmarkResultWhereInput
+    some?: BenchmarkResultWhereInput
+    none?: BenchmarkResultWhereInput
+  }
+
   export type AttendanceOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BenchmarkResultOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type KnownFaceCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
-    descriptor?: SortOrder
+    faceApiDescriptor?: SortOrder
+    arcfaceDescriptor?: SortOrder
+    enrollmentImages?: SortOrder
   }
 
   export type KnownFaceAvgOrderByAggregateInput = {
-    descriptor?: SortOrder
+    faceApiDescriptor?: SortOrder
+    arcfaceDescriptor?: SortOrder
   }
 
   export type KnownFaceMaxOrderByAggregateInput = {
@@ -3551,7 +5143,8 @@ export namespace Prisma {
   }
 
   export type KnownFaceSumOrderByAggregateInput = {
-    descriptor?: SortOrder
+    faceApiDescriptor?: SortOrder
+    arcfaceDescriptor?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -3570,6 +5163,32 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
     _max?: NestedStringFilter<$PrismaModel>
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type BigIntFilter<$PrismaModel = never> = {
@@ -3615,6 +5234,7 @@ export namespace Prisma {
     userId?: SortOrder
     similarity?: SortOrder
     latencyMs?: SortOrder
+    model?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -3629,6 +5249,7 @@ export namespace Prisma {
     userId?: SortOrder
     similarity?: SortOrder
     latencyMs?: SortOrder
+    model?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -3637,6 +5258,7 @@ export namespace Prisma {
     userId?: SortOrder
     similarity?: SortOrder
     latencyMs?: SortOrder
+    model?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -3692,7 +5314,92 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type KnownFaceCreatedescriptorInput = {
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
+  }
+
+  export type BenchmarkResultCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    faceApiAccuracy?: SortOrder
+    faceApiLatency?: SortOrder
+    arcfaceAccuracy?: SortOrder
+    arcfaceLatency?: SortOrder
+    testImage?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BenchmarkResultAvgOrderByAggregateInput = {
+    id?: SortOrder
+    faceApiAccuracy?: SortOrder
+    faceApiLatency?: SortOrder
+    arcfaceAccuracy?: SortOrder
+    arcfaceLatency?: SortOrder
+  }
+
+  export type BenchmarkResultMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    faceApiAccuracy?: SortOrder
+    faceApiLatency?: SortOrder
+    arcfaceAccuracy?: SortOrder
+    arcfaceLatency?: SortOrder
+    testImage?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BenchmarkResultMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    faceApiAccuracy?: SortOrder
+    faceApiLatency?: SortOrder
+    arcfaceAccuracy?: SortOrder
+    arcfaceLatency?: SortOrder
+    testImage?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BenchmarkResultSumOrderByAggregateInput = {
+    id?: SortOrder
+    faceApiAccuracy?: SortOrder
+    faceApiLatency?: SortOrder
+    arcfaceAccuracy?: SortOrder
+    arcfaceLatency?: SortOrder
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type KnownFaceCreatefaceApiDescriptorInput = {
+    set: number[]
+  }
+
+  export type KnownFaceCreatearcfaceDescriptorInput = {
     set: number[]
   }
 
@@ -3703,6 +5410,13 @@ export namespace Prisma {
     connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
   }
 
+  export type BenchmarkResultCreateNestedManyWithoutUserInput = {
+    create?: XOR<BenchmarkResultCreateWithoutUserInput, BenchmarkResultUncheckedCreateWithoutUserInput> | BenchmarkResultCreateWithoutUserInput[] | BenchmarkResultUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BenchmarkResultCreateOrConnectWithoutUserInput | BenchmarkResultCreateOrConnectWithoutUserInput[]
+    createMany?: BenchmarkResultCreateManyUserInputEnvelope
+    connect?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+  }
+
   export type AttendanceUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<AttendanceCreateWithoutUserInput, AttendanceUncheckedCreateWithoutUserInput> | AttendanceCreateWithoutUserInput[] | AttendanceUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AttendanceCreateOrConnectWithoutUserInput | AttendanceCreateOrConnectWithoutUserInput[]
@@ -3710,11 +5424,23 @@ export namespace Prisma {
     connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
   }
 
+  export type BenchmarkResultUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<BenchmarkResultCreateWithoutUserInput, BenchmarkResultUncheckedCreateWithoutUserInput> | BenchmarkResultCreateWithoutUserInput[] | BenchmarkResultUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BenchmarkResultCreateOrConnectWithoutUserInput | BenchmarkResultCreateOrConnectWithoutUserInput[]
+    createMany?: BenchmarkResultCreateManyUserInputEnvelope
+    connect?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
 
-  export type KnownFaceUpdatedescriptorInput = {
+  export type KnownFaceUpdatefaceApiDescriptorInput = {
+    set?: number[]
+    push?: number | number[]
+  }
+
+  export type KnownFaceUpdatearcfaceDescriptorInput = {
     set?: number[]
     push?: number | number[]
   }
@@ -3733,6 +5459,20 @@ export namespace Prisma {
     deleteMany?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
   }
 
+  export type BenchmarkResultUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BenchmarkResultCreateWithoutUserInput, BenchmarkResultUncheckedCreateWithoutUserInput> | BenchmarkResultCreateWithoutUserInput[] | BenchmarkResultUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BenchmarkResultCreateOrConnectWithoutUserInput | BenchmarkResultCreateOrConnectWithoutUserInput[]
+    upsert?: BenchmarkResultUpsertWithWhereUniqueWithoutUserInput | BenchmarkResultUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BenchmarkResultCreateManyUserInputEnvelope
+    set?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    disconnect?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    delete?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    connect?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    update?: BenchmarkResultUpdateWithWhereUniqueWithoutUserInput | BenchmarkResultUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BenchmarkResultUpdateManyWithWhereWithoutUserInput | BenchmarkResultUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BenchmarkResultScalarWhereInput | BenchmarkResultScalarWhereInput[]
+  }
+
   export type AttendanceUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<AttendanceCreateWithoutUserInput, AttendanceUncheckedCreateWithoutUserInput> | AttendanceCreateWithoutUserInput[] | AttendanceUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AttendanceCreateOrConnectWithoutUserInput | AttendanceCreateOrConnectWithoutUserInput[]
@@ -3745,6 +5485,20 @@ export namespace Prisma {
     update?: AttendanceUpdateWithWhereUniqueWithoutUserInput | AttendanceUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: AttendanceUpdateManyWithWhereWithoutUserInput | AttendanceUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
+  }
+
+  export type BenchmarkResultUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BenchmarkResultCreateWithoutUserInput, BenchmarkResultUncheckedCreateWithoutUserInput> | BenchmarkResultCreateWithoutUserInput[] | BenchmarkResultUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BenchmarkResultCreateOrConnectWithoutUserInput | BenchmarkResultCreateOrConnectWithoutUserInput[]
+    upsert?: BenchmarkResultUpsertWithWhereUniqueWithoutUserInput | BenchmarkResultUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BenchmarkResultCreateManyUserInputEnvelope
+    set?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    disconnect?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    delete?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    connect?: BenchmarkResultWhereUniqueInput | BenchmarkResultWhereUniqueInput[]
+    update?: BenchmarkResultUpdateWithWhereUniqueWithoutUserInput | BenchmarkResultUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BenchmarkResultUpdateManyWithWhereWithoutUserInput | BenchmarkResultUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BenchmarkResultScalarWhereInput | BenchmarkResultScalarWhereInput[]
   }
 
   export type KnownFaceCreateNestedOneWithoutAttendanceInput = {
@@ -3779,6 +5533,28 @@ export namespace Prisma {
     upsert?: KnownFaceUpsertWithoutAttendanceInput
     connect?: KnownFaceWhereUniqueInput
     update?: XOR<XOR<KnownFaceUpdateToOneWithWhereWithoutAttendanceInput, KnownFaceUpdateWithoutAttendanceInput>, KnownFaceUncheckedUpdateWithoutAttendanceInput>
+  }
+
+  export type KnownFaceCreateNestedOneWithoutBenchmarkResultsInput = {
+    create?: XOR<KnownFaceCreateWithoutBenchmarkResultsInput, KnownFaceUncheckedCreateWithoutBenchmarkResultsInput>
+    connectOrCreate?: KnownFaceCreateOrConnectWithoutBenchmarkResultsInput
+    connect?: KnownFaceWhereUniqueInput
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type KnownFaceUpdateOneRequiredWithoutBenchmarkResultsNestedInput = {
+    create?: XOR<KnownFaceCreateWithoutBenchmarkResultsInput, KnownFaceUncheckedCreateWithoutBenchmarkResultsInput>
+    connectOrCreate?: KnownFaceCreateOrConnectWithoutBenchmarkResultsInput
+    upsert?: KnownFaceUpsertWithoutBenchmarkResultsInput
+    connect?: KnownFaceWhereUniqueInput
+    update?: XOR<XOR<KnownFaceUpdateToOneWithWhereWithoutBenchmarkResultsInput, KnownFaceUpdateWithoutBenchmarkResultsInput>, KnownFaceUncheckedUpdateWithoutBenchmarkResultsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -3821,6 +5597,29 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
+  }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedBigIntFilter<$PrismaModel = never> = {
@@ -3902,10 +5701,49 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type AttendanceCreateWithoutUserInput = {
     id?: bigint | number
     similarity: number
     latencyMs: number
+    model?: string
     createdAt?: Date | string
   }
 
@@ -3913,6 +5751,7 @@ export namespace Prisma {
     id?: bigint | number
     similarity: number
     latencyMs: number
+    model?: string
     createdAt?: Date | string
   }
 
@@ -3923,6 +5762,36 @@ export namespace Prisma {
 
   export type AttendanceCreateManyUserInputEnvelope = {
     data: AttendanceCreateManyUserInput | AttendanceCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BenchmarkResultCreateWithoutUserInput = {
+    id?: bigint | number
+    faceApiAccuracy?: number | null
+    faceApiLatency?: number | null
+    arcfaceAccuracy?: number | null
+    arcfaceLatency?: number | null
+    testImage: string
+    createdAt?: Date | string
+  }
+
+  export type BenchmarkResultUncheckedCreateWithoutUserInput = {
+    id?: bigint | number
+    faceApiAccuracy?: number | null
+    faceApiLatency?: number | null
+    arcfaceAccuracy?: number | null
+    arcfaceLatency?: number | null
+    testImage: string
+    createdAt?: Date | string
+  }
+
+  export type BenchmarkResultCreateOrConnectWithoutUserInput = {
+    where: BenchmarkResultWhereUniqueInput
+    create: XOR<BenchmarkResultCreateWithoutUserInput, BenchmarkResultUncheckedCreateWithoutUserInput>
+  }
+
+  export type BenchmarkResultCreateManyUserInputEnvelope = {
+    data: BenchmarkResultCreateManyUserInput | BenchmarkResultCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -3950,19 +5819,56 @@ export namespace Prisma {
     userId?: StringFilter<"Attendance"> | string
     similarity?: FloatFilter<"Attendance"> | number
     latencyMs?: FloatFilter<"Attendance"> | number
+    model?: StringFilter<"Attendance"> | string
     createdAt?: DateTimeFilter<"Attendance"> | Date | string
+  }
+
+  export type BenchmarkResultUpsertWithWhereUniqueWithoutUserInput = {
+    where: BenchmarkResultWhereUniqueInput
+    update: XOR<BenchmarkResultUpdateWithoutUserInput, BenchmarkResultUncheckedUpdateWithoutUserInput>
+    create: XOR<BenchmarkResultCreateWithoutUserInput, BenchmarkResultUncheckedCreateWithoutUserInput>
+  }
+
+  export type BenchmarkResultUpdateWithWhereUniqueWithoutUserInput = {
+    where: BenchmarkResultWhereUniqueInput
+    data: XOR<BenchmarkResultUpdateWithoutUserInput, BenchmarkResultUncheckedUpdateWithoutUserInput>
+  }
+
+  export type BenchmarkResultUpdateManyWithWhereWithoutUserInput = {
+    where: BenchmarkResultScalarWhereInput
+    data: XOR<BenchmarkResultUpdateManyMutationInput, BenchmarkResultUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type BenchmarkResultScalarWhereInput = {
+    AND?: BenchmarkResultScalarWhereInput | BenchmarkResultScalarWhereInput[]
+    OR?: BenchmarkResultScalarWhereInput[]
+    NOT?: BenchmarkResultScalarWhereInput | BenchmarkResultScalarWhereInput[]
+    id?: BigIntFilter<"BenchmarkResult"> | bigint | number
+    userId?: StringFilter<"BenchmarkResult"> | string
+    faceApiAccuracy?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    faceApiLatency?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    arcfaceAccuracy?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    arcfaceLatency?: FloatNullableFilter<"BenchmarkResult"> | number | null
+    testImage?: StringFilter<"BenchmarkResult"> | string
+    createdAt?: DateTimeFilter<"BenchmarkResult"> | Date | string
   }
 
   export type KnownFaceCreateWithoutAttendanceInput = {
     id?: string
     name: string
-    descriptor?: KnownFaceCreatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceCreatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceCreatearcfaceDescriptorInput | number[]
+    enrollmentImages: JsonNullValueInput | InputJsonValue
+    BenchmarkResults?: BenchmarkResultCreateNestedManyWithoutUserInput
   }
 
   export type KnownFaceUncheckedCreateWithoutAttendanceInput = {
     id?: string
     name: string
-    descriptor?: KnownFaceCreatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceCreatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceCreatearcfaceDescriptorInput | number[]
+    enrollmentImages: JsonNullValueInput | InputJsonValue
+    BenchmarkResults?: BenchmarkResultUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type KnownFaceCreateOrConnectWithoutAttendanceInput = {
@@ -3984,19 +5890,88 @@ export namespace Prisma {
   export type KnownFaceUpdateWithoutAttendanceInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    descriptor?: KnownFaceUpdatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
+    BenchmarkResults?: BenchmarkResultUpdateManyWithoutUserNestedInput
   }
 
   export type KnownFaceUncheckedUpdateWithoutAttendanceInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    descriptor?: KnownFaceUpdatedescriptorInput | number[]
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
+    BenchmarkResults?: BenchmarkResultUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type KnownFaceCreateWithoutBenchmarkResultsInput = {
+    id?: string
+    name: string
+    faceApiDescriptor?: KnownFaceCreatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceCreatearcfaceDescriptorInput | number[]
+    enrollmentImages: JsonNullValueInput | InputJsonValue
+    Attendance?: AttendanceCreateNestedManyWithoutUserInput
+  }
+
+  export type KnownFaceUncheckedCreateWithoutBenchmarkResultsInput = {
+    id?: string
+    name: string
+    faceApiDescriptor?: KnownFaceCreatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceCreatearcfaceDescriptorInput | number[]
+    enrollmentImages: JsonNullValueInput | InputJsonValue
+    Attendance?: AttendanceUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type KnownFaceCreateOrConnectWithoutBenchmarkResultsInput = {
+    where: KnownFaceWhereUniqueInput
+    create: XOR<KnownFaceCreateWithoutBenchmarkResultsInput, KnownFaceUncheckedCreateWithoutBenchmarkResultsInput>
+  }
+
+  export type KnownFaceUpsertWithoutBenchmarkResultsInput = {
+    update: XOR<KnownFaceUpdateWithoutBenchmarkResultsInput, KnownFaceUncheckedUpdateWithoutBenchmarkResultsInput>
+    create: XOR<KnownFaceCreateWithoutBenchmarkResultsInput, KnownFaceUncheckedCreateWithoutBenchmarkResultsInput>
+    where?: KnownFaceWhereInput
+  }
+
+  export type KnownFaceUpdateToOneWithWhereWithoutBenchmarkResultsInput = {
+    where?: KnownFaceWhereInput
+    data: XOR<KnownFaceUpdateWithoutBenchmarkResultsInput, KnownFaceUncheckedUpdateWithoutBenchmarkResultsInput>
+  }
+
+  export type KnownFaceUpdateWithoutBenchmarkResultsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
+    Attendance?: AttendanceUpdateManyWithoutUserNestedInput
+  }
+
+  export type KnownFaceUncheckedUpdateWithoutBenchmarkResultsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    faceApiDescriptor?: KnownFaceUpdatefaceApiDescriptorInput | number[]
+    arcfaceDescriptor?: KnownFaceUpdatearcfaceDescriptorInput | number[]
+    enrollmentImages?: JsonNullValueInput | InputJsonValue
+    Attendance?: AttendanceUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AttendanceCreateManyUserInput = {
     id?: bigint | number
     similarity: number
     latencyMs: number
+    model?: string
+    createdAt?: Date | string
+  }
+
+  export type BenchmarkResultCreateManyUserInput = {
+    id?: bigint | number
+    faceApiAccuracy?: number | null
+    faceApiLatency?: number | null
+    arcfaceAccuracy?: number | null
+    arcfaceLatency?: number | null
+    testImage: string
     createdAt?: Date | string
   }
 
@@ -4004,6 +5979,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     similarity?: FloatFieldUpdateOperationsInput | number
     latencyMs?: FloatFieldUpdateOperationsInput | number
+    model?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -4011,6 +5987,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     similarity?: FloatFieldUpdateOperationsInput | number
     latencyMs?: FloatFieldUpdateOperationsInput | number
+    model?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -4018,6 +5995,37 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     similarity?: FloatFieldUpdateOperationsInput | number
     latencyMs?: FloatFieldUpdateOperationsInput | number
+    model?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BenchmarkResultUpdateWithoutUserInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    faceApiAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    faceApiLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    testImage?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BenchmarkResultUncheckedUpdateWithoutUserInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    faceApiAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    faceApiLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    testImage?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BenchmarkResultUncheckedUpdateManyWithoutUserInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    faceApiAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    faceApiLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceAccuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    arcfaceLatency?: NullableFloatFieldUpdateOperationsInput | number | null
+    testImage?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

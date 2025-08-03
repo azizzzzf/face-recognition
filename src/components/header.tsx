@@ -21,8 +21,9 @@ export function Header() {
   };
 
   const navItems = [
-    { name: "Daftar Wajah", href: "/register" },
-    { name: "Absensi", href: "/recognize" },
+    { name: "Register Face", href: "/register" },
+    { name: "Recognize Face", href: "/recognize" },
+    { name: "Benchmark", href: "/benchmark" },
   ];
 
   return (

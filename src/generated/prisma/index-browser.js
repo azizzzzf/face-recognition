@@ -123,7 +123,9 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.KnownFaceScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  descriptor: 'descriptor'
+  faceApiDescriptor: 'faceApiDescriptor',
+  arcfaceDescriptor: 'arcfaceDescriptor',
+  enrollmentImages: 'enrollmentImages'
 };
 
 exports.Prisma.AttendanceScalarFieldEnum = {
@@ -131,6 +133,18 @@ exports.Prisma.AttendanceScalarFieldEnum = {
   userId: 'userId',
   similarity: 'similarity',
   latencyMs: 'latencyMs',
+  model: 'model',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.BenchmarkResultScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  faceApiAccuracy: 'faceApiAccuracy',
+  faceApiLatency: 'faceApiLatency',
+  arcfaceAccuracy: 'arcfaceAccuracy',
+  arcfaceLatency: 'arcfaceLatency',
+  testImage: 'testImage',
   createdAt: 'createdAt'
 };
 
@@ -139,15 +153,31 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
 
 exports.Prisma.ModelName = {
   KnownFace: 'KnownFace',
-  Attendance: 'Attendance'
+  Attendance: 'Attendance',
+  BenchmarkResult: 'BenchmarkResult'
 };
 
 /**
