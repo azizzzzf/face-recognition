@@ -6,9 +6,8 @@ import {
   isDescriptorsLoaded 
 } from '@/lib/face-matching';
 
-// Konstanta untuk threshold (batas) pencocokan wajah
-// Turunkan threshold untuk meningkatkan akurasi
-const MATCH_THRESHOLD = 0.3;
+// Konstanta untuk threshold (batas) pencocokan wajah - berdasarkan analisis data
+const MATCH_THRESHOLD = 0.10; // Distance threshold: hanya match jika distance < 0.10
 
 // Fungsi untuk memastikan descriptor dimuat ke memori
 async function ensureFaceDescriptorsLoaded() {
@@ -19,14 +18,26 @@ async function ensureFaceDescriptorsLoaded() {
       // Ambil semua data wajah dari database
       const knownFaces = await prisma.knownFace.findMany();
       
+      // Filter faces yang memiliki Face-API descriptor yang valid
+      const validFaces = knownFaces.filter(face => 
+        face.faceApiDescriptor && Array.isArray(face.faceApiDescriptor) && face.faceApiDescriptor.length === 128
+      );
+      
+      console.log(`Found ${knownFaces.length} total users, ${validFaces.length} with valid Face-API descriptors`);
+      
+      if (validFaces.length === 0) {
+        console.warn('No users with valid Face-API descriptors found!');
+        throw new Error('No users with valid Face-API descriptors. Please register users with face-api.js first.');
+      }
+      
       // Muat ke memori
-      await loadFaceDescriptors(knownFaces);
+      await loadFaceDescriptors(validFaces);
       
       console.timeEnd('loading-descriptors');
-      console.log(`Loaded ${knownFaces.length} face descriptors into memory`);
+      console.log(`Loaded ${validFaces.length} valid face descriptors into memory`);
     } catch (error) {
       console.error('Failed to load face descriptors:', error);
-      throw new Error('Failed to initialize face recognition service');
+      throw error;
     }
   }
 }
@@ -34,7 +45,20 @@ async function ensureFaceDescriptorsLoaded() {
 export async function POST(request: Request) {
   try {
     // Pastikan descriptor wajah dimuat
-    await ensureFaceDescriptorsLoaded();
+    try {
+      await ensureFaceDescriptorsLoaded();
+    } catch (descriptorError) {
+      console.error('Face descriptor loading failed:', descriptorError);
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Face recognition service not available',
+          details: descriptorError instanceof Error ? descriptorError.message : 'Failed to load face descriptors',
+          suggestion: 'Please register users with valid face descriptors first'
+        },
+        { status: 503 }
+      );
+    }
 
     // Validasi request body
     let requestText;
@@ -120,8 +144,8 @@ export async function POST(request: Request) {
       );
     }
     
-    // Genuine threshold validation - using real similarity scores
-    if (match.similarity < 0.7) {
+    // Ketat threshold validation - hanya accept similarity tinggi
+    if (match.similarity < 0.90) {
       console.warn(`Low confidence match detected: ${match.similarity.toFixed(4)} for user ${match.name}`);
       return NextResponse.json({
         success: false,

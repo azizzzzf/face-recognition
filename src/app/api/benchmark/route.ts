@@ -89,12 +89,28 @@ export async function GET(request: NextRequest) {
       take: limit
     })
 
+    // Convert BigInt fields to strings and prepare serializable data
+    const serializedResults = results.map(result => ({
+      ...result,
+      id: result.id.toString(),
+      userId: result.userId.toString(),
+      faceApiAccuracy: result.faceApiAccuracy ? Number(result.faceApiAccuracy) : null,
+      faceApiLatency: result.faceApiLatency ? Number(result.faceApiLatency) : null,
+      arcfaceAccuracy: result.arcfaceAccuracy ? Number(result.arcfaceAccuracy) : null,
+      arcfaceLatency: result.arcfaceLatency ? Number(result.arcfaceLatency) : null,
+      createdAt: result.createdAt.toISOString(),
+      user: {
+        id: result.user.id.toString(),
+        name: result.user.name
+      }
+    }))
+
     // Calculate statistics
-    const faceApiResults = results.filter(r => r.faceApiAccuracy !== null)
-    const arcfaceResults = results.filter(r => r.arcfaceAccuracy !== null)
+    const faceApiResults = serializedResults.filter(r => r.faceApiAccuracy !== null)
+    const arcfaceResults = serializedResults.filter(r => r.arcfaceAccuracy !== null)
 
     const stats = {
-      total: results.length,
+      total: serializedResults.length,
       faceApi: {
         count: faceApiResults.length,
         avgAccuracy: faceApiResults.length > 0 
@@ -116,7 +132,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      results,
+      results: serializedResults,
       stats
     })
 

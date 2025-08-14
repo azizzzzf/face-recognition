@@ -77,22 +77,33 @@ async def health_check():
 
 @app.post("/register")
 async def register_user(request: RegisterRequest):
-    """Register a new user with multi-angle face capture"""
+    """Register a new user with multi-angle face capture - supports graceful ArcFace fallback"""
     try:
         start_time = time.time()
         
-        # Process multi-angle images with ArcFace
-        arcface_embedding, arcface_latency = arcface_service.process_multi_angle_images(
-            request.enrollment_images
-        )
+        # Try to process multi-angle images with ArcFace (with graceful fallback)
+        arcface_embedding = None
+        arcface_latency = 0
+        arcface_success = False
         
-        if arcface_embedding is None:
-            raise HTTPException(status_code=400, detail="No face detected in enrollment images")
+        try:
+            logger.info(f"🔄 Attempting ArcFace processing for user: {request.name}")
+            arcface_embedding, arcface_latency = arcface_service.process_multi_angle_images(
+                request.enrollment_images
+            )
+            
+            if arcface_embedding is not None:
+                arcface_success = True
+                logger.info(f"✅ ArcFace processing successful for {request.name}")
+            else:
+                logger.warning(f"⚠️  ArcFace could not detect faces for {request.name}, continuing with Face-API only")
+        except Exception as arcface_error:
+            logger.warning(f"⚠️  ArcFace processing failed for {request.name}: {str(arcface_error)}, continuing with Face-API only")
         
-        # Convert numpy array to list for database storage
-        arcface_descriptor = arcface_embedding.tolist()
+        # Convert numpy array to list for database storage (or empty list if ArcFace failed)
+        arcface_descriptor = arcface_embedding.tolist() if arcface_embedding is not None else []
         
-        # Register user in database
+        # Register user in database (works with or without ArcFace descriptor)
         user_id = await db_service.register_user(
             name=request.name,
             face_api_descriptor=request.face_api_descriptor or [],
@@ -106,12 +117,15 @@ async def register_user(request: RegisterRequest):
             "success": True,
             "user_id": user_id,
             "message": f"User {request.name} registered successfully",
+            "arcface_success": arcface_success,
             "arcface_latency_ms": arcface_latency,
             "total_processing_time_ms": total_time,
-            "faces_processed": len(request.enrollment_images)
+            "faces_processed": len(request.enrollment_images),
+            "arcface_descriptor": arcface_descriptor if arcface_success else None
         }
         
     except Exception as e:
+        logger.error(f"❌ Registration failed for {request.name}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @app.post("/recognize")
@@ -382,9 +396,9 @@ async def complete_user_registration(user_id: str, request: CompleteRegistration
         # Convert to list for database storage
         arcface_descriptor = arcface_embedding.tolist()
         
-        # Update user with ArcFace descriptor (temporarily disabled)
-        # await db_service.update_user_arcface_descriptor(user_id, arcface_descriptor)
-        logger.info(f"💾 ArcFace descriptor extracted successfully (database update temporarily disabled)")
+        # Update user with ArcFace descriptor
+        await db_service.update_user_arcface_descriptor(user_id, arcface_descriptor)
+        logger.info(f"💾 ArcFace descriptor updated successfully for user {user['name']}")
         
         return {
             "success": True,
@@ -395,7 +409,7 @@ async def complete_user_registration(user_id: str, request: CompleteRegistration
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to complete registration: {str(e)}")
 
-@app.get("/benchmark-results")
+@app.get("/benchmark-results")  
 async def get_benchmark_results(limit: int = 100):
     """Get benchmark results"""
     try:
@@ -406,6 +420,69 @@ async def get_benchmark_results(limit: int = 100):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get benchmark results: {str(e)}")
+
+@app.post("/fix-users-arcface")
+async def fix_users_arcface():
+    """Fix existing users by adding ArcFace descriptors from their enrollment images"""
+    try:
+        users = await db_service.get_all_users()
+        fixed_users = []
+        failed_users = []
+        
+        for user in users:
+            # Skip users who already have ArcFace descriptors
+            if user.get('arcface_descriptor') and len(user['arcface_descriptor']) > 0:
+                continue
+                
+            logger.info(f"🔄 Processing user {user['name']} for ArcFace descriptor generation...")
+            
+            try:
+                # Get enrollment images
+                enrollment_images = user.get('enrollment_images', [])
+                if not enrollment_images:
+                    logger.warning(f"⚠️  User {user['name']} has no enrollment images")
+                    failed_users.append({'user': user['name'], 'reason': 'No enrollment images'})
+                    continue
+                
+                # Process images with ArcFace
+                arcface_embedding, latency = arcface_service.process_multi_angle_images(enrollment_images)
+                
+                if arcface_embedding is not None:
+                    # Convert to list and update database
+                    arcface_descriptor = arcface_embedding.tolist()
+                    await db_service.update_user_arcface_descriptor(user['id'], arcface_descriptor)
+                    
+                    fixed_users.append({
+                        'user': user['name'], 
+                        'user_id': user['id'],
+                        'descriptor_length': len(arcface_descriptor),
+                        'latency_ms': latency
+                    })
+                    
+                    logger.info(f"✅ Fixed user {user['name']} - ArcFace descriptor added")
+                else:
+                    failed_users.append({'user': user['name'], 'reason': 'ArcFace could not detect faces'})
+                    logger.warning(f"❌ Failed to generate ArcFace descriptor for {user['name']}")
+                    
+            except Exception as user_error:
+                failed_users.append({'user': user['name'], 'reason': str(user_error)})
+                logger.error(f"❌ Error processing user {user['name']}: {str(user_error)}")
+        
+        return {
+            "success": True,
+            "message": f"Processed {len(users)} users",
+            "fixed_users": fixed_users,
+            "failed_users": failed_users,
+            "summary": {
+                "total_users": len(users),
+                "fixed_count": len(fixed_users),
+                "failed_count": len(failed_users)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to fix users: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fix users: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

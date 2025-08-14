@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Camera, Zap, Clock, Target, TrendingUp, Users } from 'lucide-react'
+import { BenchmarkTable } from '@/components/BenchmarkTable'
 
 interface User {
   id: string
@@ -20,6 +21,15 @@ interface BenchmarkResult {
   isMatch: boolean
   userName?: string
   userId?: string
+  error?: string
+  _metadata?: {
+    testMode?: string
+    foundMatch?: boolean
+    matchedUser?: string
+    selectedUser?: string
+    isCorrectUser?: boolean
+    crossPersonDetection?: boolean
+  }
 }
 
 interface ComparisonResult {
@@ -41,6 +51,8 @@ export function FaceBenchmark() {
   const [currentResult, setCurrentResult] = useState<ComparisonResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking')
+  const [testMode, setTestMode] = useState<'normal' | 'cross-person'>('normal')
+  const [benchmarkRefreshTrigger, setBenchmarkRefreshTrigger] = useState(0)
 
   // Load models and initialize
   useEffect(() => {
@@ -150,9 +162,10 @@ export function FaceBenchmark() {
   }
 
   const testFaceApi = async (imageData: string): Promise<BenchmarkResult | null> => {
+    const startTime = performance.now()
+    let extractionLatency = 0
+    
     try {
-      const startTime = performance.now()
-      
       // Convert base64 to image
       const img = new Image()
       await new Promise((resolve, reject) => {
@@ -172,42 +185,87 @@ export function FaceBenchmark() {
         return null
       }
 
-      const extractionLatency = performance.now() - startTime
+      extractionLatency = performance.now() - startTime
 
       // Convert descriptor to array
       const descriptorArray = Array.from(detection.descriptor)
 
-      // Test recognition via local API with correct payload
-      const response = await fetch('/api/recognize-face', {
+      // Test recognition via benchmark API (doesn't save attendance)
+      const response = await fetch('/api/benchmark-recognize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           descriptor: descriptorArray,
-          latencyMs: extractionLatency
+          latencyMs: extractionLatency,
+          excludeUserId: testMode === 'cross-person' ? selectedUser?.id : undefined
         })
       })
 
       if (!response.ok) {
         const errorData = await response.json()
         console.error('Recognition API error:', errorData)
-        throw new Error(errorData.error || 'Recognition failed')
+        
+        // Return error result instead of throwing
+        return {
+          model: 'face-api',
+          accuracy: 0,
+          latency: performance.now() - startTime,
+          isMatch: false,
+          error: response.status === 503 
+            ? `Service unavailable: ${errorData.details || errorData.error}` 
+            : response.status === 404 
+            ? 'No matching face found' 
+            : `Recognition failed: ${errorData.error || 'Unknown error'}`
+        }
       }
 
       const result = await response.json()
 
-      // Return formatted result
+      // Return formatted result with context-aware match validation
+      const foundMatch = result.success && result.match !== undefined;
+      const matchedCorrectUser = result.match?.name === selectedUser?.name;
+      
+      // In normal mode: match is valid if we found someone AND it's the expected user
+      // In cross-person mode: any valid match is acceptable (testing different people)
+      let isValidMatch;
+      if (testMode === 'normal') {
+        isValidMatch = foundMatch && matchedCorrectUser;
+      } else {
+        // In cross-person mode, any match above threshold is valid
+        isValidMatch = foundMatch;
+      }
+      
       return {
         model: 'face-api',
         accuracy: result.match?.similarity || 0,
         latency: extractionLatency,
-        isMatch: result.success && result.match !== undefined,
+        isMatch: isValidMatch,
         userName: result.match?.name,
-        userId: result.match?.userId
+        userId: result.match?.userId,
+        // Add metadata for better UI feedback
+        _metadata: {
+          testMode,
+          foundMatch,
+          matchedUser: result.match?.name,
+          selectedUser: selectedUser?.name,
+          isCorrectUser: matchedCorrectUser,
+          crossPersonDetection: testMode === 'normal' && foundMatch && !matchedCorrectUser
+        }
       }
 
     } catch (error) {
       console.error('Face-api test error:', error)
-      return null
+      extractionLatency = performance.now() - startTime
+      
+      // Don't throw "Failed to save attendance record" error
+      // The real error is already logged above
+      return {
+        model: 'face-api',
+        accuracy: 0,
+        latency: extractionLatency,
+        isMatch: false,
+        error: error instanceof Error ? error.message : 'Face-API test failed'
+      }
     }
   }
 
@@ -324,7 +382,7 @@ export function FaceBenchmark() {
           [model === 'face-api' ? 'faceApi' : 'arcface']: result
         }
         
-        // Save to database
+        // Save benchmark result to database (not attendance)
         await saveBenchmarkResult(comparisonResult)
         
         setCurrentResult(comparisonResult)
@@ -343,7 +401,7 @@ export function FaceBenchmark() {
 
   const saveBenchmarkResult = async (result: ComparisonResult) => {
     try {
-      await fetch('/api/benchmark', {
+      const response = await fetch('/api/benchmark', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -355,6 +413,11 @@ export function FaceBenchmark() {
           testImage: result.testImage
         })
       })
+      
+      if (response.ok) {
+        // Trigger refresh of benchmark table
+        setBenchmarkRefreshTrigger(prev => prev + 1)
+      }
     } catch (error) {
       console.warn('Failed to save benchmark result to database:', error)
     }
@@ -388,7 +451,7 @@ export function FaceBenchmark() {
         arcface: arcfaceResult || undefined
       }
 
-      // Save to database
+      // Save benchmark result to database (not attendance)
       await saveBenchmarkResult(comparisonResult)
 
       setCurrentResult(comparisonResult)
@@ -506,6 +569,39 @@ export function FaceBenchmark() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Test Controls</h3>
               
+              {/* Test Mode Selection */}
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Test Mode:</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTestMode('normal')}
+                    className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                      testMode === 'normal' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                  >
+                    Normal Mode
+                  </button>
+                  <button
+                    onClick={() => setTestMode('cross-person')}
+                    className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                      testMode === 'cross-person' 
+                        ? 'bg-amber-600 text-white' 
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                  >
+                    Cross-Person Test
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {testMode === 'normal' 
+                    ? 'Tests against all users including selected user' 
+                    : 'Excludes selected user to test cross-person accuracy'
+                  }
+                </p>
+              </div>
+              
               <div className="grid gap-3">
                 <Button
                   onClick={() => runSingleTest('face-api')}
@@ -564,27 +660,59 @@ export function FaceBenchmark() {
                   {currentResult.faceApi && (
                     <div className="space-y-2 p-4 bg-blue-50 rounded-lg">
                       <h4 className="font-semibold text-blue-900">Face-api.js</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span>Accuracy:</span>
-                          <Badge variant={currentResult.faceApi.isMatch ? 'default' : 'secondary'}>
-                            {formatAccuracy(currentResult.faceApi.accuracy)}
-                          </Badge>
+                      {currentResult.faceApi.error ? (
+                        <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                          <strong>Error:</strong> {currentResult.faceApi.error}
                         </div>
-                        <div className="flex justify-between">
-                          <span>Latency:</span>
-                          <Badge variant="outline">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {formatLatency(currentResult.faceApi.latency)}
-                          </Badge>
+                      ) : (
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span>Accuracy:</span>
+                            <Badge variant={currentResult.faceApi.isMatch ? 'default' : 'secondary'}>
+                              {formatAccuracy(currentResult.faceApi.accuracy)}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Latency:</span>
+                            <Badge variant="outline">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {formatLatency(currentResult.faceApi.latency)}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Match:</span>
+                            <Badge variant={currentResult.faceApi.isMatch ? 'default' : 'destructive'}>
+                              {currentResult.faceApi.isMatch ? 'Yes' : 'No'}
+                            </Badge>
+                          </div>
+                          {currentResult.faceApi.isMatch && currentResult.faceApi.userName && (
+                            <div className="flex justify-between">
+                              <span>Matched User:</span>
+                              <Badge variant="outline" className="text-xs">
+                                {currentResult.faceApi.userName}
+                              </Badge>
+                            </div>
+                          )}
+                          {currentResult.faceApi._metadata?.crossPersonDetection && (
+                            <div className="text-xs text-red-600 bg-red-50 p-2 rounded mt-2">
+                              🚨 <strong>False Positive Detected:</strong> Face-API matched with {currentResult.faceApi.userName}, but you selected {selectedUser?.name}. 
+                              The camera may be showing a different person, or there&apos;s a recognition error.
+                            </div>
+                          )}
+                          {currentResult.faceApi._metadata?.testMode === 'cross-person' && currentResult.faceApi.isMatch && (
+                            <div className="text-xs text-green-600 bg-green-50 p-2 rounded mt-2">
+                              ✅ <strong>Cross-Person Test:</strong> Successfully identified {currentResult.faceApi.userName} 
+                              (excluded {selectedUser?.name} from matching).
+                            </div>
+                          )}
+                          {!currentResult.faceApi.isMatch && currentResult.faceApi._metadata?.foundMatch && (
+                            <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mt-2">
+                              ℹ️ <strong>Different Person:</strong> Detected {currentResult.faceApi.userName}, but testing against {selectedUser?.name}. 
+                              Marked as &quot;No Match&quot; in {currentResult.faceApi._metadata?.testMode} mode.
+                            </div>
+                          )}
                         </div>
-                        <div className="flex justify-between">
-                          <span>Match:</span>
-                          <Badge variant={currentResult.faceApi.isMatch ? 'default' : 'destructive'}>
-                            {currentResult.faceApi.isMatch ? 'Yes' : 'No'}
-                          </Badge>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   )}
 
@@ -761,6 +889,9 @@ export function FaceBenchmark() {
               </CardContent>
             </Card>
           )}
+
+          {/* Comprehensive Benchmark History Table */}
+          <BenchmarkTable refreshTrigger={benchmarkRefreshTrigger} />
         </CardContent>
       </Card>
     </div>

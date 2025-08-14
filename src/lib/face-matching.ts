@@ -103,7 +103,8 @@ export async function loadFaceDescriptors(faces: KnownFace[]): Promise<void> {
  */
 export function findBestMatch(
   descriptor: number[],
-  threshold: number = 0.3 // Turunkan threshold menjadi 0.3 untuk keakuratan lebih tinggi
+  threshold: number = 0.10, // Threshold ketat berdasarkan analisis data: max distance untuk valid match
+  excludeUserId?: string // Optional: exclude specific user from matching (for benchmark testing)
 ): { userId: string; name: string; distance: number; similarity: number } | null {
   if (!isInitialized) {
     throw new Error('Face descriptors belum dimuat ke memori');
@@ -125,11 +126,19 @@ export function findBestMatch(
   const queryDesc = toFloat32Array(descriptor);
   
   // Cari jarak terkecil (kecocokan terbaik)
+  let excludedCount = 0;
   for (const faceId of faceIds) {
     const face = faceDescriptors[faceId];
     
+    // Skip if this user should be excluded (for benchmark testing)
+    if (excludeUserId && face.id === excludeUserId) {
+      excludedCount++;
+      continue;
+    }
+    
     // Gunakan L2 distance untuk akurasi lebih baik
     const distance = calculateL2Distance(queryDesc, face.descriptor);
+    const similarity = 1 - distance;
     
     if (distance < bestMatch.distance) {
       bestMatch = {
@@ -140,6 +149,9 @@ export function findBestMatch(
       };
     }
   }
+  
+  // Log summary for debugging if needed
+  console.log(`Face matching: checked ${faceIds.length - excludedCount}/${faceIds.length} users, best: ${bestMatch.name} (${(bestMatch.similarity * 100).toFixed(1)}%)`);
 
   // Verifikasi jika kecocokan berada di bawah threshold (lebih ketat)
   if (bestMatch.distance > threshold) {

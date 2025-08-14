@@ -144,9 +144,15 @@ export default function RegisterFace() {
         
         if (backendResponse.ok) {
           backendResult = await backendResponse.json();
+          // Use the arcface_descriptor from the backend response
           arcfaceDescriptor = backendResult.arcface_descriptor;
+          console.log('Backend registration success:', {
+            arcface_success: backendResult.arcface_success,
+            arcface_descriptor_length: arcfaceDescriptor?.length || 0
+          });
         } else {
-          console.warn('Backend registration failed, continuing with face-api only');
+          const errorText = await backendResponse.text();
+          console.warn('Backend registration failed:', errorText, 'continuing with face-api only');
         }
       } catch (backendError) {
         console.warn('Backend server unavailable, continuing with face-api only:', backendError);
@@ -180,8 +186,11 @@ export default function RegisterFace() {
       setSuccessMessage(
         `Registration successful for ${data.name}! ` +
         `Processed ${capturedImages.length} images. ` +
-        `ArcFace enabled: ${localResult.arcfaceEnabled ? 'Yes' : 'No'}. ` +
-        (backendResult?.arcface_latency_ms ? `ArcFace latency: ${backendResult.arcface_latency_ms.toFixed(2)}ms` : 'Face-API only mode.')
+        `ArcFace enabled: ${backendResult?.arcface_success && localResult.arcfaceEnabled ? 'Yes' : 'No'}. ` +
+        (backendResult?.arcface_success && backendResult?.arcface_latency_ms ? 
+          `ArcFace latency: ${backendResult.arcface_latency_ms.toFixed(2)}ms. ` : 
+          'Face-API only mode.') +
+        `Descriptors saved: Face-API ✓${backendResult?.arcface_success && localResult.arcfaceEnabled ? ', ArcFace ✓' : ''}`
       );
       
       // Reset form and state

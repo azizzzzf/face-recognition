@@ -39,9 +39,9 @@ class ArcFaceService:
                 
                 # This will download models if they don't exist - using higher resolution for better accuracy
                 logger.info("⬇️  Preparing models (downloading if needed)...")
-                # Use maximum detection size for highest accuracy (1280x1280)
-                # Also enable all available detection features
-                self.app.prepare(ctx_id=0, det_size=(1280, 1280))
+                # Use balanced detection size for reliability and accuracy 
+                # (1280 might be too demanding, try 640 for better detection)
+                self.app.prepare(ctx_id=0, det_size=(640, 640))
                 
                 self._initialized = True
                 logger.info("✅ ArcFace model initialized successfully!")
