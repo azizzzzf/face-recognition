@@ -1,0 +1,16 @@
+{
+  "name": "@face-api-attendance/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bash start-dev.sh",
+    "start": "bash start-dev.sh",
+    "install": "echo 'Python deps already installed'",
+    "setup": "./setup.sh",
+    "test": "python -m pytest tests/",
+    "lint": "flake8 .",
+    "format": "black .",
+    "type-check": "mypy .",
+    "clean": "find . -type d -name '__pycache__' -delete && find . -name '*.pyc' -delete"
+  }
+}

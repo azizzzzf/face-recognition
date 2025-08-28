@@ -1,0 +1,9 @@
+{
+  "extends": "@face-api-attendance/config/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": ["*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

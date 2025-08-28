@@ -1,0 +1,24 @@
+{
+  "name": "@face-api-attendance/utils",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@face-api-attendance/types": "workspace:*",
+    "@vladmandic/face-api": "^1.7.15",
+    "clsx": "^2.1.1",
+    "face-api.js": "^0.22.2",
+    "tailwind-merge": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}
