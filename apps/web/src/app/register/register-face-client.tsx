@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import NextImage from 'next/image';
 import * as faceapi from '@vladmandic/face-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -323,11 +324,13 @@ export default function RegisterFaceClient() {
                     <h4 className="text-xs md:text-sm font-medium text-gray-700 mb-2">Preview ({capturedImages.length} foto)</h4>
                     <div className="grid grid-cols-3 gap-1 md:gap-2">
                       {capturedImages.slice(0, 6).map((image, index) => (
-                        <div key={index} className="aspect-square rounded overflow-hidden bg-gray-100">
-                          <img 
+                        <div key={index} className="aspect-square rounded overflow-hidden bg-gray-100 relative">
+                          <NextImage 
                             src={image} 
                             alt={`Foto ${index + 1}`} 
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
+                            unoptimized={true}
                           />
                         </div>
                       ))}
