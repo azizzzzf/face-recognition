@@ -12,6 +12,17 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('Received registration request:', {
+      name: body.name,
+      hasDescriptor: !!body.descriptor,
+      descriptorLength: body.descriptor?.length,
+      hasEnrollmentImages: !!body.enrollmentImages,
+      enrollmentImagesCount: body.enrollmentImages?.length,
+      userId: body.userId,
+      multiAngle: body.multiAngle,
+      hasArcfaceDescriptor: !!body.arcfaceDescriptor
+    });
+
     const { name, descriptor, userId, multiAngle = false, arcfaceDescriptor, enrollmentImages } = body;
 
     // Validasi nama
@@ -99,9 +110,19 @@ export async function POST(request: Request) {
       enrollmentImages: enrollmentImages ? JSON.stringify(enrollmentImages) : '[]', // Use provided images or empty array
     };
     
+    console.log('Creating face record with data:', {
+      name: createData.name,
+      faceApiDescriptorLength: createData.faceApiDescriptor.length,
+      arcfaceDescriptorLength: createData.arcfaceDescriptor.length,
+      enrollmentImagesLength: createData.enrollmentImages.length,
+      enrollmentImagesType: typeof createData.enrollmentImages
+    });
+    
     const createdFace = await prisma.knownFace.create({
       data: createData,
     });
+
+    console.log('Face record created successfully:', createdFace.id);
 
     return NextResponse.json({
       ...createdFace,
@@ -111,8 +132,17 @@ export async function POST(request: Request) {
     }, { status: 201 });
   } catch (error) {
     console.error('Error registering face:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      name: error instanceof Error ? error.name : 'Unknown error type'
+    });
+    
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { 
+        error: 'Internal Server Error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

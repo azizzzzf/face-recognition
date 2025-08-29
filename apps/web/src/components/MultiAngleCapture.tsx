@@ -19,10 +19,26 @@ interface FaceCaptureProps {
 export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: FaceCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [capturedImages, setCapturedImages] = useState<string[]>([])
+  const [currentAngle, setCurrentAngle] = useState(0)
   const [isStreaming, setIsStreaming] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [showInstruction, setShowInstruction] = useState(false)
+
+  // Define the 10 different angles/poses
+  const angleInstructions = [
+    "Wajah menghadap lurus ke depan",
+    "Putar kepala sedikit ke kiri",
+    "Putar kepala sedikit ke kanan", 
+    "Angkat dagu sedikit ke atas",
+    "Turunkan dagu sedikit ke bawah",
+    "Miringkan kepala ke kiri",
+    "Miringkan kepala ke kanan",
+    "Senyum natural menghadap depan",
+    "Ekspresi serius menghadap depan",
+    "Wajah rileks menghadap depan"
+  ]
 
   const startCamera = useCallback(async () => {
     try {
@@ -119,6 +135,10 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
   const handleCapture = useCallback(() => {
     if (isCapturing || countdown > 0) return
     
+    // Show instruction for current angle
+    setShowInstruction(true)
+    setTimeout(() => setShowInstruction(false), 3000)
+    
     setCountdown(3)
     
     const countdownInterval = setInterval(() => {
@@ -126,16 +146,23 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
         if (prev <= 1) {
           clearInterval(countdownInterval)
           
-          // Capture with requestAnimationFrame for better performance
+          // Capture single photo for current angle
           requestAnimationFrame(() => {
             const imageData = captureImage()
             if (imageData) {
-              setCapturedImage(imageData)
-              // Delay camera stop to prevent flickering
-              setTimeout(() => {
-                stopCamera()
-                onCaptureComplete([imageData])
-              }, 100)
+              const newCapturedImages = [...capturedImages, imageData]
+              setCapturedImages(newCapturedImages)
+              
+              if (newCapturedImages.length >= 10) {
+                // All 10 angles captured, complete the process
+                setTimeout(() => {
+                  stopCamera()
+                  onCaptureComplete(newCapturedImages)
+                }, 100)
+              } else {
+                // Move to next angle
+                setCurrentAngle(prev => prev + 1)
+              }
             }
           })
           
@@ -144,13 +171,15 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
         return prev - 1
       })
     }, 1000)
-  }, [captureImage, stopCamera, onCaptureComplete, isCapturing, countdown])
+  }, [captureImage, stopCamera, onCaptureComplete, isCapturing, countdown, capturedImages, currentAngle])
 
   const resetCapture = useCallback(() => {
-    // Batch state updates for better performance
-    setCapturedImage(null)
+    // Reset all states for multi-angle capture
+    setCapturedImages([])
+    setCurrentAngle(0)
     setCountdown(0)
     setError(null)
+    setShowInstruction(false)
     
     if (!isStreaming) {
       // Debounce camera restart to prevent multiple calls
@@ -179,15 +208,15 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
   }, [startCamera, stopCamera])
 
   // Memoize expensive computations
-  const isComplete = useMemo(() => capturedImage !== null, [capturedImage])
+  const isComplete = useMemo(() => capturedImages.length >= 10, [capturedImages])
   
   const canShowControls = useMemo(() => {
     return !isComplete && isStreaming && countdown === 0
   }, [isComplete, isStreaming, countdown])
   
   const shouldShowResetButton = useMemo(() => {
-    return capturedImage || !isStreaming
-  }, [capturedImage, isStreaming])
+    return capturedImages.length > 0 || !isStreaming
+  }, [capturedImages, isStreaming])
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -238,6 +267,31 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
             </div>
           </div>
         </div>
+
+        {/* Progress indicator and angle instruction */}
+        {!isComplete && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="bg-black/80 text-white px-4 py-2 rounded-lg backdrop-blur-sm text-center">
+              <div className="text-sm font-medium mb-1">
+                Foto {capturedImages.length + 1} dari 10
+              </div>
+              <div className="text-xs text-gray-300">
+                {angleInstructions[currentAngle]}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Angle instruction overlay */}
+        {showInstruction && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm z-20">
+            <div className="text-center text-white p-6 bg-black/80 rounded-xl max-w-sm">
+              <div className="text-lg font-bold mb-2">Posisi {capturedImages.length + 1}/10</div>
+              <div className="text-base mb-4">{angleInstructions[currentAngle]}</div>
+              <div className="text-sm text-gray-300">Bersiaplah untuk foto dalam 3 detik</div>
+            </div>
+          </div>
+        )}
         
         {/* Countdown overlay */}
         {countdown > 0 && (
@@ -254,23 +308,29 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
         )}
 
         {/* Success overlay */}
-        {isComplete && capturedImage && (
+        {isComplete && capturedImages.length > 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm">
             <div className="text-center text-white p-6">
               <div className="mb-6">
                 <div className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center animate-bounce shadow-2xl">
                   <Check className="h-8 w-8 lg:h-10 lg:w-10 text-white" />
                 </div>
-                <p className="text-xl lg:text-2xl font-bold mb-2">Foto berhasil diambil!</p>
-                <p className="text-gray-300 text-sm lg:text-base">Foto wajah telah tersimpan dengan baik</p>
+                <p className="text-xl lg:text-2xl font-bold mb-2">10 Foto berhasil diambil!</p>
+                <p className="text-gray-300 text-sm lg:text-base">Semua angle wajah telah tersimpan dengan baik</p>
               </div>
-              <Image
-                src={capturedImage}
-                alt="Captured face"
-                width={160}
-                height={160}
-                className="w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 object-cover rounded-full mx-auto border-4 border-green-400 shadow-xl"
-              />
+              <div className="grid grid-cols-5 gap-1 max-w-xs mx-auto">
+                {capturedImages.slice(0, 10).map((image, index) => (
+                  <div key={index} className="aspect-square rounded overflow-hidden border-2 border-green-400">
+                    <Image
+                      src={image}
+                      alt={`Angle ${index + 1}`}
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -287,7 +347,9 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
               className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               <Camera className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
-              <span>Ambil Foto</span>
+              <span>
+                {capturedImages.length === 0 ? 'Ambil Foto Pertama' : `Ambil Foto ${capturedImages.length + 1}/10`}
+              </span>
             </Button>
           )}
 
@@ -300,7 +362,7 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
               className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 border-2 border-gray-300 bg-white hover:bg-gray-50 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RotateCcw className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
-              <span>{capturedImage ? 'Ambil Ulang' : 'Mulai Kamera'}</span>
+              <span>{capturedImages.length > 0 ? 'Mulai Ulang' : 'Mulai Kamera'}</span>
             </Button>
           )}
           

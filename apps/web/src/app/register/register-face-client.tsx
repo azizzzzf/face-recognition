@@ -83,14 +83,25 @@ export default function RegisterFaceClient() {
   const processMultipleImages = async (images: string[]): Promise<Float32Array | null> => {
     const descriptors: Float32Array[] = [];
     
-    for (const image of images) {
+    console.log('Processing', images.length, 'images for face descriptors');
+    
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i];
+      console.log(`Processing image ${i + 1}/${images.length}`);
+      
       const descriptor = await extractFaceDescriptor(image);
       if (descriptor) {
         descriptors.push(descriptor);
+        console.log(`Successfully extracted descriptor from image ${i + 1}, length:`, descriptor.length);
+      } else {
+        console.warn(`Failed to extract descriptor from image ${i + 1}`);
       }
     }
     
+    console.log(`Total descriptors extracted: ${descriptors.length}/${images.length}`);
+    
     if (descriptors.length === 0) {
+      console.error('No face descriptors could be extracted from any image');
       return null;
     }
     
@@ -104,6 +115,7 @@ export default function RegisterFaceClient() {
       avgDescriptor[i] = sum / descriptors.length;
     }
     
+    console.log('Average descriptor calculated, length:', avgDescriptor.length);
     return avgDescriptor;
   };
 
@@ -138,11 +150,33 @@ export default function RegisterFaceClient() {
         throw new Error('Tidak dapat mendeteksi wajah pada gambar. Pastikan wajah terlihat jelas dan coba lagi.');
       }
 
-      // Prepare data for backend registration
-      const registrationData = {
+      // Ensure descriptor is properly converted to array
+      const descriptorArray = Array.from(faceDescriptor);
+      
+      if (!descriptorArray || descriptorArray.length === 0) {
+        throw new Error('Gagal mengekstrak descriptor wajah. Silakan coba lagi.');
+      }
+
+      console.log('Face descriptor extracted:', {
+        descriptorLength: descriptorArray.length,
+        descriptorType: typeof descriptorArray,
+        isArray: Array.isArray(descriptorArray),
+        firstFewValues: descriptorArray.slice(0, 5)
+      });
+
+      // Prepare data for backend registration (for backend API)
+      const backendRegistrationData = {
         name: data.name,
-        face_api_descriptor: Array.from(faceDescriptor),
+        face_api_descriptor: descriptorArray,
         images: capturedImages // Send base64 images to backend
+      };
+
+      // Prepare data for local registration (for face-api route)
+      const localRegistrationData = {
+        name: data.name,
+        descriptor: descriptorArray, // API expects "descriptor" not "face_api_descriptor"
+        enrollmentImages: capturedImages,
+        multiAngle: true
       };
 
       // Try to register with backend (ArcFace) - but don't fail if backend is unavailable
@@ -153,7 +187,7 @@ export default function RegisterFaceClient() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(registrationData),
+          body: JSON.stringify(backendRegistrationData),
         });
 
         if (backendResponse.ok) {
@@ -164,18 +198,34 @@ export default function RegisterFaceClient() {
       }
 
       // Always try local registration with face-api.js descriptors
+      console.log('Sending to local API:', {
+        name: localRegistrationData.name,
+        descriptorLength: localRegistrationData.descriptor.length,
+        descriptorType: typeof localRegistrationData.descriptor,
+        isArray: Array.isArray(localRegistrationData.descriptor),
+        imagesCount: localRegistrationData.enrollmentImages.length,
+        multiAngle: localRegistrationData.multiAngle
+      });
+
       const localResponse = await fetch('/api/register-face', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(registrationData),
+        body: JSON.stringify(localRegistrationData),
       });
 
       const result = await localResponse.json();
       
+      console.log('API Response:', {
+        status: localResponse.status,
+        ok: localResponse.ok,
+        result: result
+      });
+      
       if (!localResponse.ok) {
-        throw new Error(result.error || 'Gagal mendaftarkan wajah');
+        console.error('API Error Details:', result);
+        throw new Error(result.error || `HTTP ${localResponse.status}: ${localResponse.statusText}`);
       }
       
       setRegistrationStatus('success');
@@ -301,19 +351,23 @@ export default function RegisterFaceClient() {
                   <ul className="text-xs md:text-sm text-blue-800 space-y-1 md:space-y-1.5">
                     <li className="flex items-start">
                       <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-blue-500 rounded-full mt-1.5 mr-1.5 flex-shrink-0"></span>
+                      <span className="leading-tight">Sistem akan mengambil 10 foto dengan angle berbeda</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-blue-500 rounded-full mt-1.5 mr-1.5 flex-shrink-0"></span>
+                      <span className="leading-tight">Ikuti instruksi posisi untuk setiap foto</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-blue-500 rounded-full mt-1.5 mr-1.5 flex-shrink-0"></span>
                       <span className="leading-tight">Posisikan wajah di dalam lingkaran panduan</span>
                     </li>
                     <li className="flex items-start">
                       <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-blue-500 rounded-full mt-1.5 mr-1.5 flex-shrink-0"></span>
-                      <span className="leading-tight">Wajah terlihat jelas dan tidak tertutup</span>
+                      <span className="leading-tight">Wajah terlihat jelas dan pencahayaan cukup</span>
                     </li>
                     <li className="flex items-start">
                       <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-blue-500 rounded-full mt-1.5 mr-1.5 flex-shrink-0"></span>
-                      <span className="leading-tight">Pencahayaan cukup terang</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-blue-500 rounded-full mt-1.5 mr-1.5 flex-shrink-0"></span>
-                      <span className="leading-tight">Ambil dari sudut berbeda</span>
+                      <span className="leading-tight">Bersiap saat muncul instruksi angle</span>
                     </li>
                   </ul>
                 </div>
