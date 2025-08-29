@@ -124,11 +124,65 @@ export async function POST(request: Request) {
 
     console.log('Face record created successfully:', createdFace.id);
 
+    // Try to get ArcFace descriptor from backend
+    let arcfaceProcessed = false;
+    let arcfaceResult = null;
+    
+    if (enrollmentImages && Array.isArray(enrollmentImages) && enrollmentImages.length > 0) {
+      try {
+        console.log('Attempting to process images with ArcFace backend...');
+        
+        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: name,
+            enrollment_images: enrollmentImages,
+            face_api_descriptor: descriptor
+          }),
+        });
+
+        if (backendResponse.ok) {
+          const backendResult = await backendResponse.json();
+          arcfaceResult = backendResult;
+          
+          console.log('Backend processing result:', {
+            success: backendResult.success,
+            arcfaceSuccess: backendResult.arcface_success,
+            arcfaceDescriptor: backendResult.arcface_descriptor ? 'present' : 'null'
+          });
+          
+          // If ArcFace was successful, update the database record
+          if (backendResult.arcface_success && backendResult.arcface_descriptor) {
+            try {
+              await prisma.knownFace.update({
+                where: { id: createdFace.id },
+                data: {
+                  arcfaceDescriptor: backendResult.arcface_descriptor
+                }
+              });
+              arcfaceProcessed = true;
+              console.log('ArcFace descriptor updated successfully in database');
+            } catch (updateError) {
+              console.error('Failed to update ArcFace descriptor:', updateError);
+            }
+          }
+        } else {
+          console.warn('Backend processing failed:', await backendResponse.text());
+        }
+      } catch (backendError) {
+        console.warn('Backend processing error:', backendError);
+      }
+    }
+
     return NextResponse.json({
       ...createdFace,
       message: `Face registered successfully for ${name}`,
       multiAngle,
-      arcfaceEnabled: !!arcfaceDescriptor
+      arcfaceEnabled: arcfaceProcessed,
+      arcfaceResult: arcfaceResult
     }, { status: 201 });
   } catch (error) {
     console.error('Error registering face:', error);
