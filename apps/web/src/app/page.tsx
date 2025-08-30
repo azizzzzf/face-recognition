@@ -40,7 +40,7 @@ export default function Home() {
         // Fetch basic stats from existing API endpoints
         const [usersRes, attendanceRes] = await Promise.all([
           fetch('/api/users?limit=1'),
-          fetch('/api/attendance?limit=1')
+          fetch('/api/logs?limit=1')
         ]);
 
         const usersData = await usersRes.json();

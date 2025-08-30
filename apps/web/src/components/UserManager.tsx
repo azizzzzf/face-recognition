@@ -60,7 +60,7 @@ interface Stats {
 
 interface ApiResponse {
   success: boolean;
-  users: User[];
+  data: User[];
   stats: Stats;
   error?: string;
 }
@@ -383,7 +383,7 @@ export default function UserManager() {
       const data: ApiResponse = await response.json();
       
       if (data.success) {
-        setUsers(data.users);
+        setUsers(data.data || []);
         setStats(data.stats);
         setError(null);
       } else {
@@ -402,6 +402,10 @@ export default function UserManager() {
 
   // Filter and sort users
   const filteredAndSortedUsers = useMemo(() => {
+    if (!Array.isArray(users)) {
+      return [];
+    }
+    
     const filtered = users.filter((user) => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
       

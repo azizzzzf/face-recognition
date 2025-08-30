@@ -206,7 +206,7 @@ class DatabaseService:
                 UPDATE known_faces 
                 SET arcface_descriptor = $1 
                 WHERE id = $2
-            """, json.dumps(arcface_descriptor), user_id)
+            """, arcface_descriptor, user_id)
         finally:
             await conn.close()
 

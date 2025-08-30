@@ -164,75 +164,62 @@ export default function RegisterFaceClient() {
         firstFewValues: descriptorArray.slice(0, 5)
       });
 
-      // Prepare data for backend registration (for backend API)
-      const backendRegistrationData = {
+      // Prepare unified registration data for single API call
+      const registrationData = {
         name: data.name,
-        face_api_descriptor: descriptorArray,
-        images: capturedImages // Send base64 images to backend
-      };
-
-      // Prepare data for local registration (for face-api route)
-      const localRegistrationData = {
-        name: data.name,
-        descriptor: descriptorArray, // API expects "descriptor" not "face_api_descriptor"
+        descriptor: descriptorArray, // Face-API descriptor
         enrollmentImages: capturedImages,
         multiAngle: true
       };
 
-      // Try to register with backend (ArcFace) - but don't fail if backend is unavailable
-      let backendSuccess = false;
-      try {
-        const backendResponse = await fetch('/api/register-backend', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(backendRegistrationData),
-        });
-
-        if (backendResponse.ok) {
-          backendSuccess = true;
-        }
-      } catch (backendError) {
-        console.warn('Backend registration failed, continuing with local registration only:', backendError);
-      }
-
-      // Always try local registration with face-api.js descriptors
-      console.log('Sending to local API:', {
-        name: localRegistrationData.name,
-        descriptorLength: localRegistrationData.descriptor.length,
-        descriptorType: typeof localRegistrationData.descriptor,
-        isArray: Array.isArray(localRegistrationData.descriptor),
-        imagesCount: localRegistrationData.enrollmentImages.length,
-        multiAngle: localRegistrationData.multiAngle
+      // Single unified registration call
+      console.log('Sending registration request:', {
+        name: registrationData.name,
+        descriptorLength: registrationData.descriptor.length,
+        descriptorType: typeof registrationData.descriptor,
+        isArray: Array.isArray(registrationData.descriptor),
+        imagesCount: registrationData.enrollmentImages.length,
+        multiAngle: registrationData.multiAngle
       });
 
-      const localResponse = await fetch('/api/register-face', {
+      const response = await fetch('/api/register-face', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(localRegistrationData),
+        body: JSON.stringify(registrationData),
       });
 
-      const result = await localResponse.json();
+      const result = await response.json();
       
-      console.log('API Response:', {
-        status: localResponse.status,
-        ok: localResponse.ok,
+      console.log('Registration API Response:', {
+        status: response.status,
+        ok: response.ok,
         result: result
       });
       
-      if (!localResponse.ok) {
-        console.error('API Error Details:', result);
-        throw new Error(result.error || `HTTP ${localResponse.status}: ${localResponse.statusText}`);
+      if (!response.ok) {
+        console.error('Registration API Error Details:', result);
+        
+        // Handle specific error cases
+        if (response.status === 409) {
+          // Duplicate user error
+          throw new Error(result.details || 'Pengguna dengan nama tersebut sudah terdaftar. Silakan gunakan nama yang berbeda.');
+        } else if (result.details) {
+          // Server provided detailed error message
+          throw new Error(result.details);
+        } else {
+          // Generic error
+          throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
+        }
       }
       
       setRegistrationStatus('success');
-      if (backendSuccess) {
+      // Show success message based on ArcFace processing result
+      if (result.arcfaceEnabled) {
         setSuccessMessage(`Berhasil mendaftarkan wajah untuk ${data.name} dengan dukungan penuh sistem (Face-API + ArcFace)!`);
       } else {
-        setSuccessMessage(`Berhasil mendaftarkan wajah untuk ${data.name} dengan Face-API!`);
+        setSuccessMessage(`Berhasil mendaftarkan wajah untuk ${data.name} dengan Face-API! (ArcFace akan diproses di background)`);
       }
       
       // Reset form and images after successful registration
