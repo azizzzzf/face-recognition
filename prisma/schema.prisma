@@ -6,49 +6,31 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model KnownFace {
-  id                String             @id @default(uuid())
-  name              String
-  faceApiDescriptor Float[]            @map("face_api_descriptor")
-  arcfaceDescriptor Float[]            @map("arcface_descriptor")
-  enrollmentImages  Json               @map("enrollment_images") // Store multiple angle images
-  Attendance        Attendance[]
-  BenchmarkResults  BenchmarkResult[]
+  id                 String       @id @default(uuid())
+  name               String
+  faceApiDescriptor  Float[]      @default([]) @map("face_api_descriptor")
+  enrollmentImages   Json         @default("[]") @map("enrollment_images") // Store multiple angle images
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @default(now()) @updatedAt @map("updated_at")
+  Attendance         Attendance[]
 
   @@map("known_faces")
 }
 
 model Attendance {
   id         BigInt    @id @default(autoincrement())
-  user       KnownFace @relation(fields: [userId], references: [id])
+  user       KnownFace @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
-  similarity Float
-  latencyMs  Float     @map("latency_ms")
-  model      String    @default("face-api") // "face-api" or "arcface"
   createdAt  DateTime  @default(now()) @map("created_at")
 
   @@map("attendance")
 }
 
-model BenchmarkResult {
-  id               BigInt    @id @default(autoincrement())
-  user             KnownFace @relation(fields: [userId], references: [id])
-  userId           String
-  faceApiAccuracy  Float?    @map("face_api_accuracy")
-  faceApiLatency   Float?    @map("face_api_latency")
-  arcfaceAccuracy  Float?    @map("arcface_accuracy")
-  arcfaceLatency   Float?    @map("arcface_latency")
-  testImage        String    @map("test_image") // Base64 or path to test image
-  createdAt        DateTime  @default(now()) @map("created_at")
-
-  @@map("benchmark_results")
-}

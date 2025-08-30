@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/ui/button';
+import { Alert, AlertDescription } from '@/ui/alert';
 
 interface AttendanceLog {
   id: string;
@@ -54,7 +54,6 @@ export default function AttendanceTable() {
         throw new Error(data.error || 'Gagal mengambil data log kehadiran');
       }
       
-      console.log('Data logs received:', data.data);
       setLogs(data.data);
       setPagination(data.pagination);
     } catch (err) {

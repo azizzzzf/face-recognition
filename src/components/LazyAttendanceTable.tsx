@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, lazy, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/ui/button';
 
 // Lazy load the AttendanceTable
 const AttendanceTable = lazy(() => import('./AttendanceTable'));

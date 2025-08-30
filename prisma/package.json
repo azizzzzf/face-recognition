@@ -1,0 +1,23 @@
+{
+  "name": "@face-api-attendance/prisma",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:pull": "prisma db pull",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:reset": "prisma migrate reset",
+    "db:seed": "tsx seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.8.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.8.1",
+    "tsx": "^4.0.0"
+  }
+}

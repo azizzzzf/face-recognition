@@ -23,7 +23,6 @@ async function ensureFaceDescriptorsLoaded() {
         face.faceApiDescriptor && Array.isArray(face.faceApiDescriptor) && face.faceApiDescriptor.length === 128
       );
       
-      console.log(`Found ${knownFaces.length} total users, ${validFaces.length} with valid Face-API descriptors`);
       
       if (validFaces.length === 0) {
         console.warn('No users with valid Face-API descriptors found!');
@@ -34,7 +33,6 @@ async function ensureFaceDescriptorsLoaded() {
       await loadFaceDescriptors(validFaces);
       
       console.timeEnd('loading-descriptors');
-      console.log(`Loaded ${validFaces.length} valid face descriptors into memory`);
     } catch (error) {
       console.error('Failed to load face descriptors:', error);
       throw error;
@@ -99,7 +97,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { descriptor, latencyMs } = body;
+    const { descriptor } = body;
 
     // Validasi descriptor
     if (!Array.isArray(descriptor)) {
@@ -120,16 +118,7 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    // Validasi latency
-    if (typeof latencyMs !== 'number' || isNaN(latencyMs)) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Latency must be a number' 
-        },
-        { status: 400 }
-      );
-    }
+    // Remove latency validation since we no longer track it
 
     // Cari kecocokan terbaik dengan threshold yang diperketat
     const match = findBestMatch(descriptor, MATCH_THRESHOLD);
@@ -157,9 +146,7 @@ export async function POST(request: Request) {
       // Simpan record kehadiran ke database
       await prisma.attendance.create({
         data: {
-          userId: match.userId,
-          similarity: match.similarity,
-          latencyMs
+          userId: match.userId
         }
       });
     } catch (dbError) {
@@ -179,7 +166,6 @@ export async function POST(request: Request) {
       match: {
         userId: match.userId,
         name: match.name,
-        similarity: match.similarity,
         timestamp: new Date().toISOString()
       }
     });
