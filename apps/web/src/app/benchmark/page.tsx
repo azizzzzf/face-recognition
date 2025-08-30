@@ -9,18 +9,16 @@ const FaceBenchmark = dynamic(() => import('@/components/FaceBenchmark').then(mo
 
 export default function BenchmarkPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">Face Recognition Performance Benchmark</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Compare the performance of Face-api.js (client-side) vs ArcFace (server-side) 
-            face recognition models in terms of accuracy and latency.
-          </p>
-        </div>
-        
-        <FaceBenchmark />
+    <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-bold tracking-tight">Performance Benchmark</h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Bandingkan performa model Face-api.js (client-side) vs ArcFace (server-side) 
+          berdasarkan akurasi dan latensi.
+        </p>
       </div>
+      
+      <FaceBenchmark />
     </div>
   )
 }

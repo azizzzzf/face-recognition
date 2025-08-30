@@ -7,17 +7,17 @@ export const metadata = {
 
 export default function RecognizePage() {
   return (
-    <main className="container mx-auto px-4 py-12 max-w-4xl">
-      <section className="mb-8 text-center">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">Absensi Wajah</h1>
-        <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+    <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="space-y-2 mb-8 text-center">
+        <h1 className="text-3xl font-bold tracking-tight">Absensi Wajah</h1>
+        <p className="text-muted-foreground">
           Arahkan wajah Anda ke kamera untuk verifikasi kehadiran otomatis
         </p>
-      </section>
+      </div>
       
-      <section className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <ClientRecognizePage />
-      </section>
-    </main>
+      </div>
+    </div>
   );
 } 

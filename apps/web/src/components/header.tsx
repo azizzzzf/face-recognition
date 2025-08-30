@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { 
+  Menu, 
+  X, 
+  Home, 
+  UserPlus, 
+  CheckCircle, 
+  BarChart3, 
+  Users, 
+  Zap 
+} from "lucide-react";
 import { ThemeSwitcher } from "./theme-switcher";
 import { usePathname } from "next/navigation";
 
@@ -21,9 +30,12 @@ export function Header() {
   };
 
   const navItems = [
-    { name: "Register Face", href: "/register" },
-    { name: "Recognize Face", href: "/recognize" },
-    { name: "Benchmark", href: "/benchmark" },
+    { name: "Home", href: "/", icon: Home },
+    { name: "Daftar Wajah", href: "/register", icon: UserPlus },
+    { name: "Absensi", href: "/recognize", icon: CheckCircle },
+    { name: "Kehadiran", href: "/attendance", icon: BarChart3 },
+    { name: "Data Pengguna", href: "/users", icon: Users },
+    { name: "Benchmark", href: "/benchmark", icon: Zap },
   ];
 
   return (
@@ -54,32 +66,38 @@ export function Header() {
         </Link>
         
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
-          <nav className="flex gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "text-primary"
-                    : "text-foreground/70 hover:text-foreground"
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+        <div className="hidden lg:flex items-center gap-6">
+          <nav className="flex gap-6" role="navigation" aria-label="Menu utama">
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 ${
+                    isActive(item.href)
+                      ? "text-primary bg-primary/10"
+                      : "text-foreground/70 hover:text-foreground"
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4" />
+                  <span className="hidden xl:inline">{item.name}</span>
+                </Link>
+              );
+            })}
           </nav>
           <ThemeSwitcher />
         </div>
         
         {/* Mobile Navigation Toggle */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <ThemeSwitcher />
           <button 
-            className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-800"
+            className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             onClick={toggleMobileMenu}
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? "Tutup menu" : "Buka menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -88,22 +106,33 @@ export function Header() {
       
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-zinc-950 border-b dark:border-zinc-800">
-          <nav className="flex flex-col container mx-auto px-4 py-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`py-3 text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? "text-primary"
-                    : "text-foreground/70 hover:text-foreground"
-                }`}
-                onClick={closeMobileMenu}
-              >
-                {item.name}
-              </Link>
-            ))}
+        <div 
+          id="mobile-navigation"
+          className="lg:hidden absolute top-16 left-0 right-0 bg-white dark:bg-zinc-950 border-b dark:border-zinc-800 shadow-lg"
+        >
+          <nav 
+            className="flex flex-col container mx-auto px-4 py-2"
+            role="navigation"
+            aria-label="Menu utama (mobile)"
+          >
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 py-3 px-2 text-sm font-medium transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 ${
+                    isActive(item.href)
+                      ? "text-primary bg-primary/10"
+                      : "text-foreground/70 hover:text-foreground"
+                  }`}
+                  onClick={closeMobileMenu}
+                >
+                  <IconComponent className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
       )}

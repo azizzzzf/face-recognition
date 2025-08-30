@@ -28,16 +28,16 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
 
   // Define the 10 different angles/poses
   const angleInstructions = [
-    "Wajah menghadap lurus ke depan",
-    "Putar kepala sedikit ke kiri",
-    "Putar kepala sedikit ke kanan", 
-    "Angkat dagu sedikit ke atas",
-    "Turunkan dagu sedikit ke bawah",
-    "Miringkan kepala ke kiri",
-    "Miringkan kepala ke kanan",
-    "Senyum natural menghadap depan",
-    "Ekspresi serius menghadap depan",
-    "Wajah rileks menghadap depan"
+    "Wajah menghadap lurus ke depan",           // Foto 1
+    "Putar kepala sedikit ke kiri",             // Foto 2
+    "Putar kepala sedikit ke kanan",            // Foto 3
+    "Angkat dagu sedikit ke atas",              // Foto 4
+    "Turunkan dagu sedikit ke bawah",           // Foto 5
+    "Miringkan kepala ke kiri",                 // Foto 6
+    "Miringkan kepala ke kanan",                // Foto 7
+    "Senyum natural menghadap depan",           // Foto 8
+    "Ekspresi serius menghadap depan",          // Foto 9
+    "Wajah rileks menghadap depan"              // Foto 10
   ]
 
   const startCamera = useCallback(async () => {
@@ -134,6 +134,13 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
 
   const handleCapture = useCallback(() => {
     if (isCapturing || countdown > 0) return
+    
+    // Debug logging
+    console.log('Capturing photo:', {
+      currentAngle,
+      photoNumber: capturedImages.length + 1,
+      instruction: angleInstructions[currentAngle]
+    })
     
     // Show instruction for current angle
     setShowInstruction(true)
@@ -286,7 +293,7 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
         {showInstruction && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm z-20">
             <div className="text-center text-white p-6 bg-black/80 rounded-xl max-w-sm">
-              <div className="text-lg font-bold mb-2">Posisi {capturedImages.length + 1}/10</div>
+              <div className="text-lg font-bold mb-2">Foto {capturedImages.length + 1} dari 10</div>
               <div className="text-base mb-4">{angleInstructions[currentAngle]}</div>
               <div className="text-sm text-gray-300">Bersiaplah untuk foto dalam 3 detik</div>
             </div>
