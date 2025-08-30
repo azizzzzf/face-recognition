@@ -10,6 +10,7 @@ import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Camera, RotateCcw, Check, AlertCircle } from 'lucide-react'
+import { CameraError } from './CameraError'
 
 interface FaceCaptureProps {
   onCaptureComplete: (images: string[]) => void
@@ -25,6 +26,7 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
   const [countdown, setCountdown] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [showInstruction, setShowInstruction] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
 
   // Define the 10 different angles/poses
   const angleInstructions = [
@@ -73,8 +75,26 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
         setIsStreaming(true)
       }
     } catch (err) {
-      setError('Gagal mengakses kamera. Mohon periksa izin akses kamera dan pastikan halaman ini diakses melalui HTTPS.')
       console.error('Camera access error:', err)
+      
+      // More specific error messages based on error type
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          setError('Akses kamera ditolak. Mohon berikan izin akses kamera untuk melanjutkan.')
+        } else if (err.name === 'NotFoundError') {
+          setError('Kamera tidak ditemukan. Pastikan perangkat memiliki kamera yang berfungsi.')
+        } else if (err.name === 'NotReadableError') {
+          setError('Kamera sedang digunakan aplikasi lain. Tutup aplikasi lain dan coba lagi.')
+        } else if (err.name === 'OverconstrainedError') {
+          setError('Kamera tidak mendukung resolusi yang diminta. Coba dengan browser berbeda.')
+        } else if (err.name === 'NotSupportedError') {
+          setError('Browser tidak mendukung akses kamera atau halaman tidak diakses melalui HTTPS.')
+        } else {
+          setError('Gagal mengakses kamera. Mohon periksa izin akses kamera dan pastikan halaman ini diakses melalui HTTPS.')
+        }
+      } else {
+        setError('Terjadi kesalahan yang tidak diketahui saat mengakses kamera.')
+      }
     }
   }, [])
 
@@ -187,6 +207,7 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
     setCountdown(0)
     setError(null)
     setShowInstruction(false)
+    setRetryCount(0)
     
     if (!isStreaming) {
       // Debounce camera restart to prevent multiple calls
@@ -226,13 +247,25 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
   }, [capturedImages, isStreaming])
 
   return (
-    <div className="w-full h-full flex flex-col">
-      {/* Error notification */}
+    <div className="w-full h-full flex flex-col relative">
+      {/* Enhanced Error Display */}
       {error && (
-        <div className="absolute top-4 left-4 right-4 z-10 flex items-center gap-2 p-4 bg-red-900 bg-opacity-90 border border-red-600 rounded-lg text-red-200 backdrop-blur-sm">
-          <AlertCircle className="h-5 w-5 flex-shrink-0" />
-          <span className="text-sm">{error}</span>
-        </div>
+        <CameraError 
+          error={error}
+          retryCount={retryCount}
+          onRetry={() => {
+            setError(null);
+            setRetryCount(prev => prev + 1);
+            // Add slight delay before retrying to give user feedback
+            setTimeout(() => {
+              startCamera();
+            }, 300);
+          }}
+          onDismiss={() => {
+            setError(null);
+            setRetryCount(0);
+          }}
+        />
       )}
 
       {/* Full Screen Camera View - optimized for horizontal layout */}

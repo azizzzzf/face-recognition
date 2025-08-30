@@ -1,6 +1,7 @@
 // Export all custom reusable components
 export { Sidebar } from "./Sidebar";
 export { SidebarLayout } from "./SidebarLayout";
+export { CameraError } from "./CameraError";
 
 export { 
   SearchFilter, 

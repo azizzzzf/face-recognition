@@ -34,23 +34,34 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
   useEffect(() => {
     const savedPinnedState = localStorage.getItem('sidebar-pinned');
     if (savedPinnedState) {
-      setIsPinned(JSON.parse(savedPinnedState));
+      const pinnedState = JSON.parse(savedPinnedState);
+      setIsPinned(pinnedState);
+      // Immediately notify parent component about initial pinned state
+      if (pinnedState && !isMobile) {
+        onExpandedChange?.(true);
+      }
     }
-  }, []);
+  }, [onExpandedChange, isMobile]);
 
   const expanded = isExpanded || internalExpanded || isPinned || (isMobile && mobileMenuOpen);
 
   const handleMouseEnter = () => {
     if (!isMobile && !isPinned) {
       setInternalExpanded(true);
-      onExpandedChange?.(true);
+      // Use requestAnimationFrame for smoother state updates
+      requestAnimationFrame(() => {
+        onExpandedChange?.(true);
+      });
     }
   };
 
   const handleMouseLeave = () => {
     if (!isMobile && !isPinned) {
       setInternalExpanded(false);
-      onExpandedChange?.(false);
+      // Use requestAnimationFrame for smoother state updates
+      requestAnimationFrame(() => {
+        onExpandedChange?.(false);
+      });
     }
   };
 
@@ -59,25 +70,33 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
     setIsPinned(newPinnedState);
     localStorage.setItem('sidebar-pinned', JSON.stringify(newPinnedState));
     
-    if (newPinnedState) {
-      setInternalExpanded(false); // Reset internal expanded when pinning
-      onExpandedChange?.(true);
-    } else {
-      onExpandedChange?.(false);
-    }
+    // Clear internal expanded state when pinning/unpinning
+    setInternalExpanded(false);
+    
+    // Use requestAnimationFrame for smooth transition
+    requestAnimationFrame(() => {
+      onExpandedChange?.(newPinnedState);
+    });
   };
 
   const toggleMobileMenu = () => {
     if (isMobile) {
-      setMobileMenuOpen(!mobileMenuOpen);
-      onExpandedChange?.(!mobileMenuOpen);
+      const newMenuState = !mobileMenuOpen;
+      setMobileMenuOpen(newMenuState);
+      // Use requestAnimationFrame for smooth mobile transitions
+      requestAnimationFrame(() => {
+        onExpandedChange?.(newMenuState);
+      });
     }
   };
 
   const closeMobileMenu = () => {
     if (isMobile) {
       setMobileMenuOpen(false);
-      onExpandedChange?.(false);
+      // Use requestAnimationFrame for smooth mobile close transitions
+      requestAnimationFrame(() => {
+        onExpandedChange?.(false);
+      });
     }
   };
 
@@ -107,9 +126,14 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-50 transition-all duration-300 ease-in-out shadow-lg ${
-          expanded ? 'w-64' : 'w-16'
+        className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-50 transition-all duration-[350ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] shadow-lg will-change-transform ${
+          expanded ? 'w-64 shadow-xl border-gray-300' : 'w-16 shadow-lg border-gray-200'
         }`}
+        style={{
+          // Hardware acceleration for sidebar animation
+          backfaceVisibility: 'hidden',
+          transform: 'translateZ(0)', // Force hardware acceleration
+        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -139,9 +163,14 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
                 </svg>
               </div>
               <span 
-                className={`font-semibold whitespace-nowrap transition-all duration-300 ${
-                  expanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
+                className={`font-semibold whitespace-nowrap transition-all duration-[350ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] will-change-auto ${
+                  expanded 
+                    ? 'opacity-100 w-auto transform translate-x-0' 
+                    : 'opacity-0 w-0 transform translate-x-[-8px]'
                 }`}
+                style={{
+                  backfaceVisibility: 'hidden',
+                }}
               >
                 Sistem Absensi
               </span>
@@ -169,11 +198,14 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-[200ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] group will-change-transform ${
                     active
-                      ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm transform scale-[1.02]"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:transform hover:scale-[1.01] hover:shadow-sm"
                   }`}
+                  style={{
+                    backfaceVisibility: 'hidden',
+                  }}
                   title={!expanded ? item.name : undefined}
                   onClick={closeMobileMenu}
                 >
@@ -181,9 +213,14 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
                     <IconComponent className="h-5 w-5" />
                   </div>
                   <span 
-                    className={`whitespace-nowrap transition-all duration-300 ${
-                      expanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
+                    className={`whitespace-nowrap transition-all duration-[350ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] will-change-auto ${
+                      expanded 
+                        ? 'opacity-100 w-auto transform translate-x-0' 
+                        : 'opacity-0 w-0 transform translate-x-[-8px]'
                     }`}
+                    style={{
+                      backfaceVisibility: 'hidden',
+                    }}
                   >
                     {item.name}
                   </span>
