@@ -501,7 +501,7 @@ export default function RecognizeFaceClient() {
           <div className="flex flex-col xl:flex-row gap-3 md:gap-4 h-full min-h-0">
             {/* LEFT PANEL - Optimized Camera Section - Single screen layout */}
             <div className="flex-[7] bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300">
-              <div className="bg-gray-900 h-full flex flex-col min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh] lg:min-h-[65vh] xl:min-h-[calc(100vh-4rem)]">
+              <div className="bg-gray-900 h-full flex flex-col min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh] lg:min-h-[65vh] xl:min-h-[calc(100vh-8rem)]">
                 <div className="flex-1 flex flex-col h-full">
                   <Tabs defaultValue="camera" value={captureMode} onValueChange={(value) => setCaptureMode(value as CaptureMode)} className="flex-1 flex flex-col h-full">
                     <TabsContent value="camera" className="flex-1 m-0 h-full">
@@ -601,6 +601,33 @@ export default function RecognizeFaceClient() {
                         )}
 
                         </div>
+
+                        {/* Controls section with white border - moved inside camera TabsContent */}
+                        <div className="p-3 md:p-4 lg:p-6 bg-white border-t border-gray-200">
+                          <div className="flex justify-center items-center gap-3 md:gap-4">
+                            {isCameraActive ? (
+                              <Button
+                                onClick={processRecognition}
+                                disabled={!isModelLoaded || recognitionStatus === 'processing'}
+                                className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                              >
+                                <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
+                                <span>
+                                  {recognitionStatus === 'processing' ? 'Memproses...' : 'Mulai Pengenalan'}
+                                </span>
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={startCamera}
+                                disabled={recognitionStatus === 'processing'}
+                                className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                              >
+                                <Camera className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
+                                <span>Aktifkan Kamera</span>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </TabsContent>
 
@@ -616,37 +643,10 @@ export default function RecognizeFaceClient() {
                   </Tabs>
                 </div>
               </div>
-              
-              {/* Controls section with white border - exact copy from register */}
-              <div className="p-3 md:p-4 lg:p-6 bg-white border-t border-gray-200">
-                <div className="flex justify-center items-center gap-3 md:gap-4">
-                  {isCameraActive ? (
-                    <Button
-                      onClick={processRecognition}
-                      disabled={!isModelLoaded || recognitionStatus === 'processing'}
-                      className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    >
-                      <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
-                      <span>
-                        {recognitionStatus === 'processing' ? 'Memproses...' : 'Mulai Pengenalan'}
-                      </span>
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={startCamera}
-                      disabled={recognitionStatus === 'processing'}
-                      className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    >
-                      <Camera className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
-                      <span>Aktifkan Kamera</span>
-                    </Button>
-                  )}
-                </div>
-              </div>
             </div>
 
             {/* RIGHT PANEL - Responsive Dashboard Controls Card */}
-            <div className="flex-[3] bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-200 flex flex-col min-h-[40vh] sm:min-h-[35vh] md:min-h-[45vh] xl:min-h-[calc(100vh-4rem)] transition-all duration-300">
+            <div className="flex-[3] bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-200 flex flex-col min-h-[40vh] sm:min-h-[35vh] md:min-h-[45vh] xl:min-h-[calc(100vh-8rem)] transition-all duration-300">
               <div className="p-3 sm:p-4 md:p-5 flex flex-col h-full">
                 {/* Card Header - Responsive */}
                 <div className="border-b border-gray-100 pb-2 md:pb-3 mb-3 md:mb-4">
