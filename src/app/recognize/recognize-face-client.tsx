@@ -23,23 +23,6 @@ interface RecognitionResult {
 type RecognitionStatus = 'idle' | 'processing' | 'success' | 'error';
 type CaptureMode = 'camera' | 'upload';
 
-// Style untuk video mirror (menghilangkan efek cermin seperti pada registrasi)
-const videoStyle = {
-  transform: 'scaleX(-1)', // Mirror untuk konsistensi dengan registrasi
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover' as const
-};
-
-// Style untuk canvas yang sesuai dengan video
-const canvasStyle = {
-  position: 'absolute' as const,
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  transform: 'scaleX(-1)' // Mirror untuk konsistensi dengan registrasi
-};
 
 export default function RecognizeFaceClient() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -409,8 +392,8 @@ export default function RecognizeFaceClient() {
       // Konversi Float32Array ke array biasa untuk JSON
       const descriptorArray = Array.from(result.descriptor);
       
-      // Capture image for ArcFace recognition
-      const currentImage = await captureImageForArcFace();
+      // Capture image for ArcFace recognition (currently unused)
+      // const currentImage = await captureImageForArcFace();
       
       // Try Face-API.js recognition first
       const payload = JSON.stringify({
@@ -516,14 +499,14 @@ export default function RecognizeFaceClient() {
         // DASHBOARD MAIN CONTENT - Optimized Horizontal Layout
         <div className="flex-1 max-w-[100rem] mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4">
           <div className="flex flex-col xl:flex-row gap-3 md:gap-4 h-full min-h-0">
-            {/* LEFT PANEL - Optimized Camera Section */}
+            {/* LEFT PANEL - Optimized Camera Section - Exact copy from register */}
             <div className="flex-[7] bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300">
               <div className="bg-gray-900 h-full flex flex-col min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh] lg:min-h-[65vh] xl:min-h-[calc(100vh-8rem)]">
                 <Tabs defaultValue="camera" value={captureMode} onValueChange={(value) => setCaptureMode(value as CaptureMode)} className="flex-1 flex flex-col h-full">
                   <TabsContent value="camera" className="flex-1 m-0 h-full">
-                    <div className="relative flex-1 h-full">
-                      {/* Status model */}
-                      {!isModelLoaded && (
+                    <div className="w-full h-full flex flex-col relative">
+                      {/* Enhanced Error Display */}
+                      {!isCameraActive && !isModelLoaded && (
                         <div className="absolute inset-0 flex justify-center items-center bg-gray-900/75 z-10">
                           <div className="text-white text-center">
                             <div className="mb-2">Memuat model AI...</div>
@@ -534,54 +517,88 @@ export default function RecognizeFaceClient() {
                           </div>
                         </div>
                       )}
-                      
-                      <video 
-                        ref={videoRef} 
-                        style={videoStyle}
-                        className={`w-full h-full object-cover ${isCameraActive ? 'opacity-100' : 'opacity-0'}`}
-                        autoPlay 
-                        playsInline 
-                        muted
-                      />
-                      
-                      <canvas 
-                        ref={canvasRef} 
-                        style={canvasStyle}
-                      />
-                      
-                      {/* Spinner saat processing */}
-                      {recognitionStatus === 'processing' && (
-                        <div className="absolute inset-0 flex justify-center items-center bg-gray-900/60 backdrop-blur-sm z-10">
-                          <div className="text-white text-center">
-                            <div className="mb-2">Memproses pengenalan wajah...</div>
-                            <div className="relative w-12 h-12 mx-auto">
-                              <div className="absolute inset-0 rounded-full border-2 border-gray-600"></div>
-                              <div className="absolute inset-0 rounded-full border-t-2 border-blue-500 animate-spin"></div>
+
+                      {/* Full Screen Camera View - optimized for horizontal layout */}
+                      <div className="flex-1 relative">
+                        <video
+                          ref={videoRef}
+                          className={`w-full h-full object-cover ${isCameraActive ? 'opacity-100' : 'opacity-0'}`}
+                          style={{
+                            aspectRatio: '16/9',
+                            objectPosition: 'center center',
+                            transform: 'scaleX(-1)' // Mirror the video horizontally
+                          }}
+                          autoPlay
+                          playsInline
+                          muted
+                        />
+                        
+                        <canvas
+                          ref={canvasRef}
+                          className="absolute inset-0 w-full h-full"
+                          style={{
+                            transform: 'scaleX(-1)' // Mirror the canvas too
+                          }}
+                        />
+                        
+                        {/* Face Position Guide Mark */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="relative">
+                            {/* Outer circle guide */}
+                            <div className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 border-2 border-white/70 rounded-full shadow-lg">
+                              {/* Inner circle guide */}
+                              <div className="absolute inset-4 border border-white/50 rounded-full">
+                                {/* Center crosshair */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-6 h-6 border border-white/60 rounded-full bg-white/20 backdrop-blur-sm">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="w-2 h-2 bg-white/80 rounded-full"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                                {/* Corner markers */}
+                                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-2 bg-white/60 rounded-full"></div>
+                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-8 h-2 bg-white/60 rounded-full"></div>
+                                <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-2 h-8 bg-white/60 rounded-full"></div>
+                                <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-8 bg-white/60 rounded-full"></div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      )}
-                      
-                      {/* Overlay panduan kamera - Same as registration */}
-                      {isCameraActive && (
-                        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                          {/* Overlay oval dengan opacity rendah untuk menunjukkan area wajah yang ideal */}
-                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                                         w-3/4 h-5/6 border-2 border-white border-dashed rounded-full 
-                                         flex items-center justify-center opacity-70">
-                            <div className="text-white text-xs bg-black/50 px-2 py-1 rounded absolute -bottom-8">
-                              Posisikan wajah di area ini
+
+                        {/* Progress indicator and status */}
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="bg-black/80 text-white px-4 py-2 rounded-lg backdrop-blur-sm text-center">
+                            <div className="text-sm font-medium mb-1">
+                              Pengenalan Wajah
+                            </div>
+                            <div className="text-xs text-gray-300">
+                              Posisikan wajah di dalam lingkaran panduan
                             </div>
                           </div>
                         </div>
-                      )}
-                      
-                      {/* Jika kamera belum aktif */}
-                      {!isCameraActive && (
-                        <div className="absolute inset-0 flex justify-center items-center">
-                          <div className="text-gray-400 text-lg">Kamera tidak aktif</div>
-                        </div>
-                      )}
+                        
+                        {/* Countdown overlay */}
+                        {recognitionStatus === 'processing' && (
+                          <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center backdrop-blur-sm">
+                            <div className="text-center">
+                              <div className="text-white text-6xl sm:text-7xl lg:text-8xl font-bold mb-4 animate-pulse">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+                              </div>
+                              <p className="text-white text-lg lg:text-xl font-medium">
+                                Memproses pengenalan wajah...
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Jika kamera belum aktif */}
+                        {!isCameraActive && (
+                          <div className="absolute inset-0 flex justify-center items-center">
+                            <div className="text-gray-400 text-lg">Kamera tidak aktif</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </TabsContent>
 
@@ -595,6 +612,23 @@ export default function RecognizeFaceClient() {
                     </div>
                   </TabsContent>
                 </Tabs>
+              </div>
+              
+              {/* Controls section moved outside camera view - exact copy from register */}
+              <div className="p-3 md:p-4 lg:p-6 bg-white border-t border-gray-200">
+                <div className="flex justify-center items-center gap-3 md:gap-4">
+                  <Button
+                    onClick={processRecognition}
+                    disabled={!isModelLoaded || recognitionStatus === 'processing' || !isCameraActive}
+                    size="lg"
+                    className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
+                    <span>
+                      {recognitionStatus === 'processing' ? 'Memproses...' : 'Mulai Pengenalan'}
+                    </span>
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -625,7 +659,7 @@ export default function RecognizeFaceClient() {
                   </Tabs>
                 </div>
 
-                {/* Instructions Card - Optimized for All Screen Sizes */}
+                {/* Instructions Card - exact copy from register page */}
                 <div className="mb-3 md:mb-4 p-2 md:p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg md:rounded-xl transition-all duration-200">
                   <h4 className="font-medium text-blue-900 mb-1 md:mb-2 flex items-center text-xs md:text-sm">
                     <AlertCircle className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
@@ -646,7 +680,7 @@ export default function RecognizeFaceClient() {
                     </li>
                     <li className="flex items-start">
                       <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-blue-500 rounded-full mt-1.5 mr-1.5 flex-shrink-0"></span>
-                      <span className="leading-tight">Tekan tombol untuk memulai pengenalan</span>
+                      <span className="leading-tight">Tekan tombol biru untuk memulai pengenalan</span>
                     </li>
                   </ul>
                 </div>
@@ -668,38 +702,19 @@ export default function RecognizeFaceClient() {
                   </div>
                 )}
 
-                {/* Main Button */}
+                {/* Camera Control Button */}
                 <div className="mb-3 md:mb-4">
-                  {captureMode === 'camera' ? (
-                    !isCameraActive ? (
-                      <Button
-                        onClick={startCamera}
-                        disabled={recognitionStatus === 'processing'}
-                        className="w-full h-10 md:h-12 text-sm md:text-base font-medium"
-                      >
-                        <Camera className="h-4 w-4 mr-2" />
-                        Aktifkan Kamera
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={processRecognition}
-                        disabled={!isModelLoaded || recognitionStatus === 'processing'}
-                        className="w-full h-10 md:h-12 text-sm md:text-base font-medium"
-                      >
-                        {recognitionStatus === 'processing' ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Memproses...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Mulai Pengenalan
-                          </>
-                        )}
-                      </Button>
-                    )
-                  ) : (
+                  {captureMode === 'camera' && !isCameraActive && (
+                    <Button
+                      onClick={startCamera}
+                      disabled={recognitionStatus === 'processing'}
+                      className="w-full h-10 md:h-12 text-sm md:text-base font-medium"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Aktifkan Kamera
+                    </Button>
+                  )}
+                  {captureMode === 'upload' && (
                     <Button
                       disabled
                       className="w-full h-10 md:h-12 text-sm md:text-base font-medium opacity-50"
