@@ -21,6 +21,29 @@ interface DashboardStats {
   totalAttendance: number;
 }
 
+interface StatsResponse {
+  success: boolean;
+  data: {
+    overview: {
+      totalUsers: number;
+      totalAttendanceRecords: number;
+      todayAttendanceCount: number;
+      uniqueUsersInPeriod: number;
+      periodDays: number;
+    };
+    userDistribution: {
+      faceApiEnabled: number;
+      noDescriptors: number;
+      avgEnrollmentImages: number;
+    };
+    performance: {
+      periodAttendanceCount: number;
+      attendanceGrowthRate: number;
+    };
+  };
+  error?: string;
+}
+
 export default function Home() {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
@@ -28,32 +51,70 @@ export default function Home() {
     totalAttendance: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchDashboardStats = async (silent = false) => {
+    try {
+      if (!silent) {
+        setIsLoading(true);
+        setError(null);
+      }
+      
+      // Use the comprehensive stats API endpoint
+      const response = await fetch('/api/stats', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch statistics: ${response.status} ${response.statusText}`);
+      }
+      
+      const result: StatsResponse = await response.json();
+      
+      if (result.success && result.data) {
+        const { overview } = result.data;
+        
+        setStats({
+          totalUsers: overview.totalUsers || 0,
+          todayAttendance: overview.todayAttendanceCount || 0,
+          totalAttendance: overview.totalAttendanceRecords || 0
+        });
+        setLastUpdated(new Date());
+        setError(null);
+      } else {
+        throw new Error(result.error || 'Invalid response format');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      console.error('Failed to fetch dashboard stats:', err);
+      setError(errorMessage);
+      
+      // Keep existing stats if this is a silent refresh, otherwise reset
+      if (!silent) {
+        setStats({
+          totalUsers: 0,
+          todayAttendance: 0,
+          totalAttendance: 0
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardStats = async () => {
-      try {
-        // Fetch basic stats from existing API endpoints
-        const [usersRes, attendanceRes] = await Promise.all([
-          fetch('/api/users?limit=1'),
-          fetch('/api/logs?limit=1')
-        ]);
-
-        const usersData = await usersRes.json();
-        const attendanceData = await attendanceRes.json();
-
-        setStats({
-          totalUsers: usersData.pagination?.total || 0,
-          todayAttendance: 0, // This would need a specific endpoint
-          totalAttendance: attendanceData.pagination?.total || 0
-        });
-      } catch (error) {
-        console.error('Failed to fetch dashboard stats:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchDashboardStats();
+    
+    // Auto-refresh stats every 5 minutes
+    const refreshInterval = setInterval(() => {
+      fetchDashboardStats(true); // Silent refresh
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const quickActions = [
@@ -108,30 +169,76 @@ export default function Home() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-          <Card className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold">{isLoading ? '...' : stats.totalUsers}</p>
-                <p className="text-xs text-muted-foreground">Pengguna</p>
+          {error && (
+            <div className="col-span-full mb-4">
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-red-600">{error}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => fetchDashboardStats()}
+                      disabled={isLoading}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          <Card className="p-4 hover:shadow-lg transition-shadow">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Users className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-2xl font-bold text-gray-900">
+                  {isLoading ? (
+                    <span className="animate-pulse bg-gray-200 rounded h-8 w-12 block"></span>
+                  ) : (
+                    stats.totalUsers.toLocaleString()
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground font-medium">Pengguna Terdaftar</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-2xl font-bold">{isLoading ? '...' : stats.totalAttendance}</p>
-                <p className="text-xs text-muted-foreground">Total Log</p>
+          
+          <Card className="p-4 hover:shadow-lg transition-shadow">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Activity className="h-5 w-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-2xl font-bold text-gray-900">
+                  {isLoading ? (
+                    <span className="animate-pulse bg-gray-200 rounded h-8 w-12 block"></span>
+                  ) : (
+                    stats.totalAttendance.toLocaleString()
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground font-medium">Total Log Kehadiran</p>
               </div>
             </div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-orange-500" />
-              <div>
-                <p className="text-2xl font-bold">{isLoading ? '...' : stats.todayAttendance}</p>
-                <p className="text-xs text-muted-foreground">Hari Ini</p>
+          
+          <Card className="p-4 hover:shadow-lg transition-shadow">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-2xl font-bold text-gray-900">
+                  {isLoading ? (
+                    <span className="animate-pulse bg-gray-200 rounded h-8 w-12 block"></span>
+                  ) : (
+                    stats.todayAttendance.toLocaleString()
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground font-medium">Kehadiran Hari Ini</p>
               </div>
             </div>
           </Card>
