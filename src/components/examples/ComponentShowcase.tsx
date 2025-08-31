@@ -32,7 +32,7 @@ import { StatCard, MetricCard, KPICard } from "@/components/StatCard";
 import { ActionMenu, TableRowActionMenu } from "@/components/ActionMenu";
 import { ExportButton } from "@/components/ExportButton";
 import { 
-  LoadingSkeleton,
+  Skeleton,
   TableSkeleton, 
   StatCardSkeleton, 
   PageSkeleton 
@@ -346,7 +346,7 @@ export function ComponentShowcase() {
                 selectFilters={selectFilters}
                 selectValues={selectValues}
                 onSelectChange={(key, value) => 
-                  setSelectValues(prev => ({ ...prev, [key]: value }))
+                  setSelectValues(prev => ({ ...prev, [key]: value as string }))
                 }
                 
                 dateFilters={dateFilters}
@@ -560,6 +560,8 @@ export function ComponentShowcase() {
       <ConfirmDialog
         open={confirmDialog.isOpen}
         onOpenChange={confirmDialog.closeDialog}
+        title={confirmDialog.config.title || "Confirm Action"}
+        onConfirm={confirmDialog.config.onConfirm || (() => {})}
         {...confirmDialog.config}
       />
     </div>

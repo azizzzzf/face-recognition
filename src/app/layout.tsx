@@ -5,6 +5,7 @@ import "./globals.css";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ToastProvider from "@/components/Toast";
+import { AuthProvider } from "@/context/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,11 @@ export default function RootLayout({
       >
         <ErrorBoundary showDetails={process.env.NODE_ENV === 'development'}>
           <ToastProvider>
-            <SidebarLayout>
-              {children}
-            </SidebarLayout>
+            <AuthProvider>
+              <SidebarLayout>
+                {children}
+              </SidebarLayout>
+            </AuthProvider>
           </ToastProvider>
         </ErrorBoundary>
       </body>

@@ -211,7 +211,8 @@ export function ExportButton({
 
       // Custom export handler
       if (onExport) {
-        await onExport(exportData, format);
+        const dataToExport = Array.isArray(exportData) ? exportData : exportData.data || [];
+        await onExport(dataToExport, format);
       } else {
         // Default export handling
         switch (format) {

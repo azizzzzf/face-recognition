@@ -290,17 +290,16 @@ export const createToastUtils = (toast: ToastContextType) => ({
 
   // Custom patterns
   confirmAction: (action: string, onConfirm: () => void) => {
-    toast.warning(
-      `Confirm ${action}`,
-      `Are you sure you want to ${action}?`,
-      {
-        action: {
-          label: 'Confirm',
-          onClick: onConfirm,
-        },
-        persistent: true,
-      }
-    );
+    toast.addToast({
+      type: 'warning',
+      title: `Confirm ${action}`,
+      description: `Are you sure you want to ${action}?`,
+      action: {
+        label: 'Confirm',
+        onClick: onConfirm,
+      },
+      persistent: true,
+    });
   },
 });
 

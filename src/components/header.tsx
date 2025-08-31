@@ -12,7 +12,7 @@ import {
   Users, 
   Zap 
 } from "lucide-react";
-import { ThemeSwitcher } from "./theme-switcher";
+// import { ThemeSwitcher } from "./theme-switcher";
 import { usePathname } from "next/navigation";
 
 export function Header() {
@@ -86,12 +86,12 @@ export function Header() {
               );
             })}
           </nav>
-          <ThemeSwitcher />
+          {/* <ThemeSwitcher /> */}
         </div>
         
         {/* Mobile Navigation Toggle */}
         <div className="flex items-center gap-2 lg:hidden">
-          <ThemeSwitcher />
+          {/* <ThemeSwitcher /> */}
           <button 
             className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             onClick={toggleMobileMenu}

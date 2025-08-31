@@ -1,8 +1,35 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { updateSession } from '@/lib/supabase/middleware';
+import { getUserBySupabaseId } from '@/lib/auth';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const { user: supabaseUser } = await updateSession(request);
+    if (!supabaseUser) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const appUser = await getUserBySupabaseId(supabaseUser.id);
+    if (!appUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only admins can register faces
+    if (appUser.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json().catch(() => null);
     
     if (!body) {

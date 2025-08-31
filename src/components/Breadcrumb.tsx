@@ -85,7 +85,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
               
               {item.label === '...' ? (
                 <span className="text-muted-foreground px-2">...</span>
-              ) : item.href && !item.current && !isLast ? (
+              ) : item.href && !('current' in item && item.current) && !isLast ? (
                 <Link
                   href={item.href}
                   className={cn(
@@ -100,11 +100,11 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
                 <span
                   className={cn(
                     "flex items-center space-x-1",
-                    isLast || item.current
+                    isLast || ('current' in item && item.current)
                       ? "text-foreground font-medium"
                       : "text-muted-foreground"
                   )}
-                  aria-current={isLast || item.current ? "page" : undefined}
+                  aria-current={isLast || ('current' in item && item.current) ? "page" : undefined}
                 >
                   {IconComponent && <IconComponent className="h-4 w-4" />}
                   <span>{item.label}</span>

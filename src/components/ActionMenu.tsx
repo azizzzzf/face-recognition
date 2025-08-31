@@ -4,8 +4,7 @@ import * as React from "react";
 import { 
   MoreVertical, 
   ChevronDown,
-  Check,
-  Separator as SeparatorIcon
+  Check
 } from "lucide-react";
 import {
   DropdownMenu,

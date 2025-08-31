@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 
 interface SidebarLayoutProps {
@@ -11,6 +12,11 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  const pathname = usePathname();
+  
+  // Check if current path is auth-related
+  const isAuthPage = pathname?.startsWith('/auth/') || false;
 
   useEffect(() => {
     const checkMobile = () => {
@@ -30,6 +36,15 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       clearTimeout(timer);
     };
   }, []);
+
+  // If it's an auth page, render without sidebar
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">

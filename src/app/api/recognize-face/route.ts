@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { 
   loadFaceDescriptors, 
   findBestMatch, 
   isDescriptorsLoaded 
 } from '@/lib/face-matching';
+import { updateSession } from '@/lib/supabase/middleware';
+import { getUserBySupabaseId } from '@/lib/auth';
 
 // Konstanta untuk threshold (batas) pencocokan wajah - berdasarkan analisis data
 const MATCH_THRESHOLD = 0.10; // Distance threshold: hanya match jika distance < 0.10
@@ -40,8 +42,25 @@ async function ensureFaceDescriptorsLoaded() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const { user: supabaseUser } = await updateSession(request);
+    if (!supabaseUser) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const appUser = await getUserBySupabaseId(supabaseUser.id);
+    if (!appUser) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
     // Pastikan descriptor wajah dimuat
     try {
       await ensureFaceDescriptorsLoaded();
@@ -144,9 +163,11 @@ export async function POST(request: Request) {
 
     try {
       // Simpan record kehadiran ke database
+      // For face recognition, we record the attendance of the recognized face
       await prisma.attendance.create({
         data: {
-          userId: match.userId
+          faceId: match.userId, // The matched face ID (KnownFace)
+          userId: appUser.id    // The authenticated user who performed the attendance
         }
       });
     } catch (dbError) {

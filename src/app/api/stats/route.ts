@@ -82,7 +82,9 @@ export async function GET(request: Request) {
     // Top performers (users with most attendance in period)
     const userAttendanceCount: { [userId: string]: number } = {};
     periodAttendanceRecords.forEach(record => {
-      userAttendanceCount[record.userId] = (userAttendanceCount[record.userId] || 0) + 1;
+      if (record.userId) {
+        userAttendanceCount[record.userId] = (userAttendanceCount[record.userId] || 0) + 1;
+      }
     });
 
     const topUserIds = Object.entries(userAttendanceCount)

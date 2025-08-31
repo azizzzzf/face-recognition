@@ -264,6 +264,7 @@ export function UnsavedChangesDialog({
 }) {
   return (
     <ConfirmDialog
+      {...props}
       open={open}
       onOpenChange={onOpenChange}
       title="Unsaved Changes"
@@ -273,7 +274,6 @@ export function UnsavedChangesDialog({
       variant="warning"
       onConfirm={onConfirm}
       onCancel={onDiscard}
-      {...props}
     />
   );
 }

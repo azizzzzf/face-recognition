@@ -14,6 +14,8 @@ import {
   Calendar,
   Activity
 } from "lucide-react"
+import { useAuth } from '@/hooks/useAuth'
+import { useUser } from '@/hooks/useUser'
 
 interface DashboardStats {
   totalUsers: number;
@@ -52,7 +54,9 @@ export default function Home() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  
+  const { user, loading } = useAuth();
+  const { appUser } = useUser();
 
   const fetchDashboardStats = async (silent = false) => {
     try {
@@ -83,7 +87,6 @@ export default function Home() {
           todayAttendance: overview.todayAttendanceCount || 0,
           totalAttendance: overview.totalAttendanceRecords || 0
         });
-        setLastUpdated(new Date());
         setError(null);
       } else {
         throw new Error(result.error || 'Invalid response format');
@@ -106,16 +109,41 @@ export default function Home() {
     }
   };
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    fetchDashboardStats();
-    
-    // Auto-refresh stats every 5 minutes
-    const refreshInterval = setInterval(() => {
-      fetchDashboardStats(true); // Silent refresh
-    }, 5 * 60 * 1000); // 5 minutes
-    
-    return () => clearInterval(refreshInterval);
-  }, []);
+    if (!loading && !user) {
+      window.location.href = '/auth/login';
+      return;
+    }
+  }, [user, loading]);
+
+  // Fetch dashboard stats when user is authenticated
+  useEffect(() => {
+    if (user && !loading) {
+      fetchDashboardStats();
+      
+      // Auto-refresh stats every 5 minutes
+      const refreshInterval = setInterval(() => {
+        fetchDashboardStats(true); // Silent refresh
+      }, 5 * 60 * 1000); // 5 minutes
+      
+      return () => clearInterval(refreshInterval);
+    }
+  }, [user, loading]);
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render content if user is not authenticated
+  if (!user) {
+    return null;
+  }
 
   const quickActions = [
     {
@@ -124,7 +152,8 @@ export default function Home() {
       href: "/register",
       icon: UserPlus,
       color: "bg-blue-500",
-      variant: "default" as const
+      variant: "default" as const,
+      roles: ['ADMIN']
     },
     {
       title: "Absensi",
@@ -132,7 +161,8 @@ export default function Home() {
       href: "/recognize",
       icon: CheckCircle,
       color: "bg-green-500",
-      variant: "default" as const
+      variant: "default" as const,
+      roles: []
     },
   ];
 
@@ -142,14 +172,16 @@ export default function Home() {
       description: "Kelola dan pantau riwayat kehadiran",
       href: "/attendance",
       icon: BarChart3,
-      stats: `${stats.totalAttendance} total log`
+      stats: `${stats.totalAttendance} total log`,
+      roles: []
     },
     {
       title: "Data Pengguna",
       description: "Kelola pengguna yang terdaftar",
       href: "/users",
       icon: Users,
-      stats: `${stats.totalUsers} pengguna`
+      stats: `${stats.totalUsers} pengguna`,
+      roles: ['ADMIN']
     },
   ];
 
@@ -158,6 +190,13 @@ export default function Home() {
       {/* Hero Section */}
       <section className="mb-12 text-center space-y-6">
         <div className="space-y-4">
+          {appUser && (
+            <div className="mb-4">
+              <Badge variant="secondary" className="text-sm px-3 py-1">
+                Welcome back, {appUser.name} ({appUser.role})
+              </Badge>
+            </div>
+          )}
           <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">
             Sistem Presensi dengan Face-API.js
           </h1>
@@ -256,31 +295,33 @@ export default function Home() {
           </div>
 
           <div className="grid gap-4">
-            {quickActions.map((action) => {
-              const IconComponent = action.icon;
-              return (
-                <Card key={action.href} className="group hover:shadow-lg transition-all duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-3 rounded-lg ${action.color} text-white`}>
-                          <IconComponent className="h-6 w-6" />
+            {quickActions
+              .filter(action => action.roles.length === 0 || (appUser && action.roles.includes(appUser.role)))
+              .map((action) => {
+                const IconComponent = action.icon;
+                return (
+                  <Card key={action.href} className="group hover:shadow-lg transition-all duration-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className={`p-3 rounded-lg ${action.color} text-white`}>
+                            <IconComponent className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{action.title}</h3>
+                            <p className="text-muted-foreground text-sm">{action.description}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{action.title}</h3>
-                          <p className="text-muted-foreground text-sm">{action.description}</p>
-                        </div>
+                        <Button asChild variant={action.variant} size="sm" className="group-hover:bg-primary">
+                          <Link href={action.href} className="flex items-center gap-2">
+                            Mulai <ArrowRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
                       </div>
-                      <Button asChild variant={action.variant} size="sm" className="group-hover:bg-primary">
-                        <Link href={action.href} className="flex items-center gap-2">
-                          Mulai <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
           </div>
         </section>
 
@@ -294,36 +335,38 @@ export default function Home() {
           </div>
 
           <div className="grid gap-4">
-            {managementFeatures.map((feature) => {
-              const IconComponent = feature.icon;
-              return (
-                <Card key={feature.href} className="group hover:shadow-lg transition-all duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="p-3 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
-                          <IconComponent className="h-6 w-6 group-hover:text-primary transition-colors" />
+            {managementFeatures
+              .filter(feature => feature.roles.length === 0 || (appUser && feature.roles.includes(appUser.role)))
+              .map((feature) => {
+                const IconComponent = feature.icon;
+                return (
+                  <Card key={feature.href} className="group hover:shadow-lg transition-all duration-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-3 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors">
+                            <IconComponent className="h-6 w-6 group-hover:text-primary transition-colors" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{feature.title}</h3>
+                            <p className="text-muted-foreground text-sm">{feature.description}</p>
+                            {feature.stats && (
+                              <Badge variant="secondary" className="mt-1">
+                                {feature.stats}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{feature.title}</h3>
-                          <p className="text-muted-foreground text-sm">{feature.description}</p>
-                          {feature.stats && (
-                            <Badge variant="secondary" className="mt-1">
-                              {feature.stats}
-                            </Badge>
-                          )}
-                        </div>
+                        <Button asChild variant="outline" size="sm" className="group-hover:border-primary">
+                          <Link href={feature.href} className="flex items-center gap-2">
+                            Kelola <ArrowRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
                       </div>
-                      <Button asChild variant="outline" size="sm" className="group-hover:border-primary">
-                        <Link href={feature.href} className="flex items-center gap-2">
-                          Kelola <ArrowRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
           </div>
         </section>
       </div>

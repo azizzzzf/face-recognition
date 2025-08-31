@@ -1,8 +1,35 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { updateSession } from '@/lib/supabase/middleware';
+import { getUserBySupabaseId } from '@/lib/auth';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const { user: supabaseUser } = await updateSession(request);
+    if (!supabaseUser) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const appUser = await getUserBySupabaseId(supabaseUser.id);
+    if (!appUser) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only admins can access user management
+    if (appUser.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
     // Extract query parameters for filtering
     const url = new URL(request.url);
     const search = url.searchParams.get('search')?.trim();
@@ -191,8 +218,33 @@ export async function GET(request: Request) {
 }
 
 // DELETE endpoint for user management
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
+    // Check authentication
+    const { user: supabaseUser } = await updateSession(request);
+    if (!supabaseUser) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const appUser = await getUserBySupabaseId(supabaseUser.id);
+    if (!appUser) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only admins can delete users
+    if (appUser.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('id');
     const userIds = searchParams.get('ids')?.split(',');
@@ -235,8 +287,33 @@ export async function DELETE(request: Request) {
 }
 
 // PUT endpoint for updating user information
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
+    // Check authentication
+    const { user: supabaseUser } = await updateSession(request);
+    if (!supabaseUser) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const appUser = await getUserBySupabaseId(supabaseUser.id);
+    if (!appUser) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only admins can update user information
+    if (appUser.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { id, name } = body;
 

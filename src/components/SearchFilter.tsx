@@ -214,8 +214,8 @@ export function SearchFilter({
                       <Select
                         value={
                           Array.isArray(selectValues[filter.key]) 
-                            ? selectValues[filter.key]?.[0] || "all"
-                            : selectValues[filter.key] || "all"
+                            ? (selectValues[filter.key] as string[])?.[0] || "all"
+                            : (selectValues[filter.key] as string) || "all"
                         }
                         onValueChange={(value) => onSelectChange?.(filter.key, value)}
                       >

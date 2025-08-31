@@ -13,9 +13,13 @@ import {
   Menu,
   X,
   Pin,
-  PinOff
+  PinOff,
+  LogOut,
+  User as UserIcon
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
 
 interface SidebarProps {
   isExpanded?: boolean;
@@ -28,6 +32,9 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const pathname = usePathname();
+  
+  const { signOut } = useAuth();
+  const { appUser } = useUser();
 
   // Load pinned state from localStorage
   useEffect(() => {
@@ -102,11 +109,11 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
   const isActive = (path: string) => pathname === path;
 
   const navItems = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Daftar Wajah", href: "/register", icon: UserPlus },
-    { name: "Absensi", href: "/recognize", icon: CheckCircle },
-    { name: "Kehadiran", href: "/attendance", icon: BarChart3 },
-    { name: "Data Pengguna", href: "/users", icon: Users },
+    { name: "Home", href: "/", icon: Home, roles: [] },
+    { name: "Daftar Wajah", href: "/register", icon: UserPlus, roles: ['ADMIN'] },
+    { name: "Absensi", href: "/recognize", icon: CheckCircle, roles: [] },
+    { name: "Kehadiran", href: "/attendance", icon: BarChart3, roles: [] },
+    { name: "Data Pengguna", href: "/users", icon: Users, roles: ['ADMIN'] },
   ];
 
   return (
@@ -192,6 +199,11 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
               const IconComponent = item.icon;
               const active = isActive(item.href);
               
+              // Show item if no roles required or user has required role
+              const showItem = item.roles.length === 0 || (appUser && item.roles.includes(appUser.role));
+              
+              if (!showItem) return null;
+              
               return (
                 <Link
                   key={item.href}
@@ -226,6 +238,56 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
               );
             })}
           </nav>
+
+          {/* User Profile Section */}
+          {appUser && (
+            <div className="border-t border-gray-200 p-3">
+              {/* User Info */}
+              <div className="flex items-center gap-3 px-2 py-2 mb-2">
+                <div className="flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <UserIcon className="h-4 w-4 text-blue-600" />
+                  </div>
+                </div>
+                <div 
+                  className={`flex-1 min-w-0 transition-all duration-[350ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] will-change-auto ${
+                    expanded 
+                      ? 'opacity-100 w-auto transform translate-x-0' 
+                      : 'opacity-0 w-0 transform translate-x-[-8px]'
+                  }`}
+                  style={{
+                    backfaceVisibility: 'hidden',
+                  }}
+                >
+                  <p className="text-sm font-medium text-gray-900 truncate">{appUser.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{appUser.role}</p>
+                </div>
+              </div>
+              
+              {/* Logout Button */}
+              <button
+                onClick={() => signOut()}
+                className="flex items-center gap-3 w-full px-2 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+                title={!expanded ? "Sign Out" : undefined}
+              >
+                <div className="flex-shrink-0">
+                  <LogOut className="h-4 w-4" />
+                </div>
+                <span 
+                  className={`whitespace-nowrap transition-all duration-[350ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] will-change-auto ${
+                    expanded 
+                      ? 'opacity-100 w-auto transform translate-x-0' 
+                      : 'opacity-0 w-0 transform translate-x-[-8px]'
+                  }`}
+                  style={{
+                    backfaceVisibility: 'hidden',
+                  }}
+                >
+                  Sign Out
+                </span>
+              </button>
+            </div>
+          )}
 
 
           {/* Expand/Collapse indicator - Hide on mobile and when pinned */}
