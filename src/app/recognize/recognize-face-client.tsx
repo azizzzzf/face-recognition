@@ -5,8 +5,7 @@ import * as faceapi from '@vladmandic/face-api';
 import { Button } from '@/ui/button';
 import { Alert, AlertDescription } from '@/ui/alert';
 import { Card, CardContent } from '@/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
-import { Camera, Upload, Check, AlertCircle, CheckCircle2, Users } from 'lucide-react';
+import { Camera, Check, AlertCircle, CheckCircle2, Users } from 'lucide-react';
 
 interface RecognitionResult {
   success: boolean;
@@ -21,7 +20,6 @@ interface RecognitionResult {
 }
 
 type RecognitionStatus = 'idle' | 'processing' | 'success' | 'error';
-type CaptureMode = 'camera' | 'upload';
 
 
 export default function RecognizeFaceClient() {
@@ -37,7 +35,6 @@ export default function RecognizeFaceClient() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [recognitionResult, setRecognitionResult] = useState<RecognitionResult | null>(null);
   const [showRecognitionResult, setShowRecognitionResult] = useState(false);
-  const [captureMode, setCaptureMode] = useState<CaptureMode>('camera');
   const [performanceMetrics, setPerformanceMetrics] = useState<{
     detectionTime: number;
     totalTime: number;
@@ -538,8 +535,7 @@ export default function RecognizeFaceClient() {
             <div className="flex-[7] bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300">
               <div className="bg-gray-900 h-full flex flex-col min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh] lg:min-h-[65vh] xl:min-h-[calc(100vh-8rem)]">
                 <div className="flex-1 flex flex-col h-full">
-                  <Tabs defaultValue="camera" value={captureMode} onValueChange={(value) => setCaptureMode(value as CaptureMode)} className="flex-1 flex flex-col h-full">
-                    <TabsContent value="camera" className="flex-1 m-0 h-full">
+                  <div className="flex-1 flex flex-col h-full">
                       <div className="w-full h-full flex flex-col relative">
                       {/* Enhanced Error Display */}
                       {!isCameraActive && !isModelLoaded && (
@@ -664,18 +660,7 @@ export default function RecognizeFaceClient() {
                           </div>
                         </div>
                       </div>
-                    </TabsContent>
-
-                    <TabsContent value="upload" className="flex-1 m-0 h-full p-3 sm:p-4 md:p-6">
-                      <div className="flex flex-col items-center justify-center h-full bg-gray-800/50 rounded-lg backdrop-blur-sm border border-gray-700/50">
-                        <div className="text-center text-white">
-                          <Upload className="h-12 w-12 mx-auto mb-4 opacity-60" />
-                          <p className="text-sm opacity-80">Upload image untuk pengenalan wajah</p>
-                          <p className="text-xs opacity-60 mt-2">Fitur akan segera tersedia</p>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
+                  </div>
                 </div>
               </div>
             </div>
@@ -685,27 +670,9 @@ export default function RecognizeFaceClient() {
               <div className="p-3 sm:p-4 md:p-5 flex flex-col h-full">
                 {/* Card Header - Responsive */}
                 <div className="border-b border-gray-100 pb-2 md:pb-3 mb-3 md:mb-4">
-                  <h3 className="text-sm md:text-base xl:text-lg font-semibold text-gray-900 mb-1">Kontrol Kamera</h3>
-                  <p className="text-xs md:text-sm text-gray-600">Pilih metode pengenalan wajah</p>
+                  <h3 className="text-sm md:text-base xl:text-lg font-semibold text-gray-900 mb-1">Absensi</h3>
                 </div>
 
-                {/* Method Selection Card - Enhanced Responsive */}
-                <div className="mb-3 md:mb-4">
-                  <Tabs defaultValue="camera" value={captureMode} onValueChange={(value) => setCaptureMode(value as CaptureMode)}>
-                    <TabsList className="grid grid-cols-2 w-full h-8 md:h-10 p-1 bg-gray-100 transition-all duration-200">
-                      <TabsTrigger value="camera" className="flex-1 flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">
-                        <Camera className="h-3 w-3 md:h-4 md:w-4" />
-                        <span className="hidden sm:inline">Camera</span>
-                        <span className="sm:hidden">Cam</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="upload" className="flex-1 flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">
-                        <Upload className="h-3 w-3 md:h-4 md:w-4" />
-                        <span className="hidden sm:inline">Upload</span>
-                        <span className="sm:hidden">Up</span>
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
 
                 {/* Instructions Card - exact copy from register page */}
                 <div className="mb-3 md:mb-4 p-2 md:p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg md:rounded-xl transition-all duration-200">

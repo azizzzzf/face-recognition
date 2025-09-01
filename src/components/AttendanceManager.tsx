@@ -50,7 +50,12 @@ interface AttendanceStats {
   mostUsedModel: string;
 }
 
-export default function AttendanceManager() {
+interface AttendanceManagerProps {
+  userRole: string;
+  userId?: string;
+}
+
+export default function AttendanceManager({ userRole, userId }: AttendanceManagerProps) {
   // State management
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -77,7 +82,11 @@ export default function AttendanceManager() {
   // Fetch all logs for client-side filtering and statistics
   const fetchAllLogs = async () => {
     try {
-      const response = await fetch('/api/logs?page=1&limit=1000');
+      const endpoint = userRole === 'ADMIN' 
+        ? '/api/logs?page=1&limit=1000'
+        : '/api/users/personal-attendance?page=1&limit=1000';
+      
+      const response = await fetch(endpoint);
       const data: AttendanceResponse = await response.json();
       
       if (!response.ok || !data.success) {
@@ -96,7 +105,11 @@ export default function AttendanceManager() {
     setError(null);
     
     try {
-      const response = await fetch(`/api/logs?page=${page}&limit=${limit}`);
+      const endpoint = userRole === 'ADMIN' 
+        ? `/api/logs?page=${page}&limit=${limit}`
+        : `/api/users/personal-attendance?page=${page}&limit=${limit}`;
+      
+      const response = await fetch(endpoint);
       const data: AttendanceResponse = await response.json();
       
       if (!response.ok || !data.success) {
@@ -225,8 +238,14 @@ export default function AttendanceManager() {
     }
   };
 
-  // Delete attendance record
+  // Delete attendance record (admin only)
   const handleDeleteLog = async (logId: string) => {
+    // Only admin can delete logs
+    if (userRole !== 'ADMIN') {
+      setError('Anda tidak memiliki akses untuk menghapus data kehadiran.');
+      return;
+    }
+
     try {
       const response = await fetch(`/api/logs/${logId}`, {
         method: 'DELETE',
@@ -480,15 +499,17 @@ export default function AttendanceManager() {
                                 <Eye className="h-4 w-4" />
                                 <span className="sr-only">Lihat detail</span>
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeleteLog(log)}
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Hapus</span>
-                              </Button>
+                              {userRole === 'ADMIN' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setDeleteLog(log)}
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">Hapus</span>
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>

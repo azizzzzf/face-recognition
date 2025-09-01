@@ -18,12 +18,15 @@ export const API_PERMISSIONS: Record<string, Role[]> = {
   // Admin only APIs
   '/api/users': [Role.ADMIN],
   '/api/users/bulk': [Role.ADMIN],
+  '/api/users/registered': [Role.ADMIN],
   '/api/register-face': [Role.ADMIN],
   
-  // User and Admin APIs
+  // User and Admin APIs  
   '/api/recognize-face': [Role.USER, Role.ADMIN],
-  '/api/logs': [Role.USER, Role.ADMIN],
-  '/api/stats': [Role.USER, Role.ADMIN],
+  '/api/logs': [Role.ADMIN], // Admin sees all logs
+  '/api/stats': [Role.ADMIN], // Admin sees all stats
+  '/api/users/face-status': [Role.USER, Role.ADMIN], // User can check own face status
+  '/api/users/personal-attendance': [Role.USER, Role.ADMIN], // User sees personal attendance
   
   // Specific user data (will be filtered by middleware)
   '/api/users/[id]': [Role.USER, Role.ADMIN],

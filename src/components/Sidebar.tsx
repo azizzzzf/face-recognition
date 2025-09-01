@@ -31,6 +31,7 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
   const [internalExpanded, setInternalExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
+  const [faceRegistrationStatus, setFaceRegistrationStatus] = useState<boolean | null>(null);
   const pathname = usePathname();
   
   const { signOut } = useAuth();
@@ -48,6 +49,29 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
       }
     }
   }, [onExpandedChange, isMobile]);
+
+  // Check face registration status for USER role
+  useEffect(() => {
+    if (appUser && appUser.role === 'USER') {
+      const checkFaceRegistration = async () => {
+        try {
+          const response = await fetch('/api/users/face-status');
+          const data = await response.json();
+          
+          if (data.success) {
+            setFaceRegistrationStatus(data.data.canAccessAttendance);
+          }
+        } catch (err) {
+          console.error('Error checking face registration:', err);
+          setFaceRegistrationStatus(false);
+        }
+      };
+      
+      checkFaceRegistration();
+    } else {
+      setFaceRegistrationStatus(true); // Admin always has access
+    }
+  }, [appUser]);
 
   const expanded = isExpanded || internalExpanded || isPinned || (isMobile && mobileMenuOpen);
 
@@ -202,7 +226,11 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
               // Show item if no roles required or user has required role
               const showItem = item.roles.length === 0 || (appUser && item.roles.includes(appUser.role));
               
-              if (!showItem) return null;
+              // For USER role, hide attendance-related items if face not registered
+              const isAttendanceRelated = item.href === '/attendance' || item.href === '/recognize';
+              const hideForUnregisteredUser = appUser?.role === 'USER' && isAttendanceRelated && faceRegistrationStatus === false;
+              
+              if (!showItem || hideForUnregisteredUser) return null;
               
               return (
                 <Link

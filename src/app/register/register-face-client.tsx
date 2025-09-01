@@ -1,20 +1,35 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import NextImage from 'next/image';
 import * as faceapi from '@vladmandic/face-api';
 import { Button } from '@/ui/button';
-import { Input } from '@/ui/input';
 import { Alert, AlertDescription } from '@/ui/alert';
-import { Card, CardContent } from '@/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
 import { MultiAngleCapture } from '@/components/MultiAngleCapture';
 import { ImageUpload } from '@/components/ImageUpload';
-import { Camera, Upload, Check, AlertCircle, RotateCcw } from 'lucide-react';
+import { UserSelectionCombobox } from '@/components/UserSelectionCombobox';
+import { Camera, Upload, Check, AlertCircle, RotateCcw, User, Shield } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@/hooks/useUser';
 
 interface FormData {
+  selectedUserId: string;
+}
+
+interface RegisteredUser {
+  id: string;
   name: string;
+  email: string;
+  registeredAt: string;
+  hasFaceRegistration: boolean;
+  faceRegistration?: {
+    id: string;
+    registeredAt: string;
+    hasValidDescriptor: boolean;
+  };
 }
 
 type RegistrationStatus = 'idle' | 'capturing' | 'processing' | 'success' | 'error';
@@ -28,9 +43,26 @@ export default function RegisterFaceClient() {
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [captureMode, setCaptureMode] = useState<CaptureMode>('camera');
+  const [selectedUser, setSelectedUser] = useState<RegisteredUser | null>(null);
   
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<FormData>();
-  const nameValue = watch('name');
+  const { user, loading } = useAuth();
+  const { appUser } = useUser();
+  
+  const { control, handleSubmit, formState: { errors }, reset, watch } = useForm<FormData>();
+  const selectedUserIdValue = watch('selectedUserId');
+
+  // Check admin permission
+  useEffect(() => {
+    if (!loading && (!user || !appUser)) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    
+    if (appUser && appUser.role !== 'ADMIN') {
+      setErrorMessage('Akses ditolak. Hanya administrator yang dapat melakukan registrasi wajah.');
+      return;
+    }
+  }, [user, appUser, loading]);
   
   // Load face-api.js models
   useEffect(() => {
@@ -138,6 +170,11 @@ export default function RegisterFaceClient() {
       return;
     }
 
+    if (!selectedUser) {
+      setErrorMessage('Silakan pilih pengguna terlebih dahulu.');
+      return;
+    }
+
     setRegistrationStatus('processing');
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -164,11 +201,12 @@ export default function RegisterFaceClient() {
         firstFewValues: descriptorArray.slice(0, 5)
       });
 
-      // Prepare unified registration data for single API call
+      // Prepare unified registration data with user ID
       const registrationData = {
-        name: data.name,
-        descriptor: descriptorArray, // Face-API descriptor
+        name: selectedUser.name,
+        descriptor: descriptorArray,
         enrollmentImages: capturedImages,
+        userId: selectedUser.id, // Link to selected user
         multiAngle: true
       };
 
@@ -217,9 +255,9 @@ export default function RegisterFaceClient() {
       setRegistrationStatus('success');
       // Show success message based on ArcFace processing result
       if (result.arcfaceEnabled) {
-        setSuccessMessage(`Berhasil mendaftarkan wajah untuk ${data.name} dengan dukungan penuh sistem (Face-API + ArcFace)!`);
+        setSuccessMessage(`Berhasil mendaftarkan wajah untuk ${selectedUser.name} dengan dukungan penuh sistem (Face-API + ArcFace)!`);
       } else {
-        setSuccessMessage(`Berhasil mendaftarkan wajah untuk ${data.name} dengan Face-API! (ArcFace akan diproses di background)`);
+        setSuccessMessage(`Berhasil mendaftarkan wajah untuk ${selectedUser.name} dengan Face-API! (ArcFace akan diproses di background)`);
       }
       
       // Reset form and images after successful registration
@@ -413,31 +451,59 @@ export default function RegisterFaceClient() {
       ) : (
         // REGISTRATION FORM - Full Screen Overlay
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md shadow-2xl border-gray-200/70 bg-white">
+          <Card className="w-full max-w-lg shadow-2xl border-gray-200/70 bg-white">
             <CardContent className="p-6">
               <div className="text-center mb-6">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Check className="w-6 h-6 text-green-600" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Foto Berhasil Diambil</h2>
-                <p className="text-sm text-gray-600">Masukkan nama untuk melengkapi registrasi</p>
+                <p className="text-sm text-gray-600">Pilih pengguna untuk registrasi wajah</p>
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <Input
-                    {...register('name', { 
-                      required: 'Nama harus diisi',
-                      minLength: { value: 2, message: 'Nama minimal 2 karakter' }
-                    })}
-                    placeholder="Masukkan nama lengkap"
-                    className="w-full"
-                    disabled={registrationStatus === 'processing'}
+                  <div className="mb-2">
+                    <label className="text-sm font-medium text-gray-700 mb-1.5 block flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Pilih Pengguna
+                    </label>
+                  </div>
+                  <Controller
+                    name="selectedUserId"
+                    control={control}
+                    rules={{ required: 'Silakan pilih pengguna terlebih dahulu' }}
+                    render={({ field }) => (
+                      <UserSelectionCombobox
+                        value={field.value}
+                        onValueChange={(value, user) => {
+                          field.onChange(value);
+                          setSelectedUser(user);
+                        }}
+                        placeholder="Pilih pengguna untuk registrasi wajah"
+                        error={!!errors.selectedUserId}
+                        disabled={registrationStatus === 'processing'}
+                      />
+                    )}
                   />
-                  {errors.name && (
-                    <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
+                  {errors.selectedUserId && (
+                    <p className="text-sm text-red-600 mt-1">{errors.selectedUserId.message}</p>
                   )}
                 </div>
+
+                {selectedUser && (
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-blue-900">{selectedUser.name}</p>
+                        <p className="text-xs text-blue-700 truncate">{selectedUser.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-2 pt-2">
                   <Button
@@ -452,7 +518,7 @@ export default function RegisterFaceClient() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={registrationStatus === 'processing' || !nameValue}
+                    disabled={registrationStatus === 'processing' || !selectedUser}
                     className="flex-1"
                   >
                     {registrationStatus === 'processing' ? (
@@ -463,7 +529,7 @@ export default function RegisterFaceClient() {
                     ) : (
                       <>
                         <Check className="w-4 h-4 mr-2" />
-                        Daftar
+                        Daftar Wajah
                       </>
                     )}
                   </Button>
