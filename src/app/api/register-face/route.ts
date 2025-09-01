@@ -75,10 +75,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validasi semua nilai descriptor adalah angka
-    if (!descriptor.every((val) => typeof val === 'number')) {
+    // Validasi dan normalize semua nilai descriptor adalah angka
+    const normalizedDescriptor = descriptor.map(val => {
+      const num = typeof val === 'number' ? val : Number(val);
+      if (isNaN(num)) {
+        return null; // Mark invalid values
+      }
+      return num;
+    });
+
+    // Check if any values were invalid
+    if (normalizedDescriptor.includes(null)) {
       return NextResponse.json(
-        { error: 'All descriptor values must be numbers' },
+        { error: 'All descriptor values must be valid numbers' },
         { status: 400 }
       );
     }
@@ -117,7 +126,7 @@ export async function POST(request: NextRequest) {
           faceApiDescriptor: number[];
           enrollmentImages?: string;
         } = {
-          faceApiDescriptor: descriptor,
+          faceApiDescriptor: normalizedDescriptor as number[],
         };
         
         // Add enrollment images if provided
@@ -150,7 +159,7 @@ export async function POST(request: NextRequest) {
       enrollmentImages: string;
     } = {
       name,
-      faceApiDescriptor: descriptor,
+      faceApiDescriptor: normalizedDescriptor as number[],
       enrollmentImages: enrollmentImages ? JSON.stringify(enrollmentImages) : '[]',
     };
     
@@ -158,6 +167,8 @@ export async function POST(request: NextRequest) {
       name: createData.name,
       faceApiDescriptorLength: createData.faceApiDescriptor.length,
       enrollmentImagesLength: createData.enrollmentImages.length,
+      descriptorSample: createData.faceApiDescriptor.slice(0, 5), // First 5 values for validation
+      descriptorType: typeof createData.faceApiDescriptor[0]
     });
     
     const createdFace = await prisma.knownFace.create({

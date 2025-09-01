@@ -8,8 +8,9 @@ import {
 import { updateSession } from '@/lib/supabase/middleware';
 import { getUserBySupabaseId } from '@/lib/auth';
 
-// Konstanta untuk threshold (batas) pencocokan wajah - berdasarkan analisis data
-const MATCH_THRESHOLD = 0.10; // Distance threshold: hanya match jika distance < 0.10
+// Konstanta untuk threshold (batas) pencocokan wajah - threshold yang lebih realistis
+const MATCH_THRESHOLD = 0.6; // Distance threshold: match jika distance < 0.6 (lebih permissive)
+const SIMILARITY_THRESHOLD = 0.75; // Similarity threshold: accept jika similarity > 75%
 
 // Fungsi untuk memastikan descriptor dimuat ke memori
 async function ensureFaceDescriptorsLoaded() {
@@ -21,9 +22,17 @@ async function ensureFaceDescriptorsLoaded() {
       const knownFaces = await prisma.knownFace.findMany();
       
       // Filter faces yang memiliki Face-API descriptor yang valid
-      const validFaces = knownFaces.filter(face => 
-        face.faceApiDescriptor && Array.isArray(face.faceApiDescriptor) && face.faceApiDescriptor.length === 128
-      );
+      // Convert Float[] from database to number[] for processing
+      const validFaces = knownFaces
+        .filter(face => 
+          face.faceApiDescriptor && 
+          Array.isArray(face.faceApiDescriptor) && 
+          face.faceApiDescriptor.length === 128
+        )
+        .map(face => ({
+          ...face,
+          faceApiDescriptor: face.faceApiDescriptor.map(val => Number(val)) // Ensure number type
+        }));
       
       
       if (validFaces.length === 0) {
@@ -35,6 +44,7 @@ async function ensureFaceDescriptorsLoaded() {
       await loadFaceDescriptors(validFaces);
       
       console.timeEnd('loading-descriptors');
+      console.log(`Successfully loaded ${validFaces.length} face descriptors to memory`);
     } catch (error) {
       console.error('Failed to load face descriptors:', error);
       throw error;
@@ -139,25 +149,38 @@ export async function POST(request: NextRequest) {
 
     // Remove latency validation since we no longer track it
 
-    // Cari kecocokan terbaik dengan threshold yang diperketat
+    // Cari kecocokan terbaik dengan threshold yang realistis
+    console.log(`Starting face matching with descriptor length: ${descriptor.length}`);
     const match = findBestMatch(descriptor, MATCH_THRESHOLD);
     
     if (!match) {
+      console.log('No face match found with current threshold');
       return NextResponse.json(
         { 
           success: false,
-          error: 'No face match found' 
+          error: 'Wajah tidak terdaftar dalam sistem. Pastikan wajah sudah didaftarkan terlebih dahulu.',
+          debug: {
+            descriptorLength: descriptor.length,
+            threshold: MATCH_THRESHOLD
+          }
         },
         { status: 404 }
       );
     }
     
-    // Ketat threshold validation - hanya accept similarity tinggi
-    if (match.similarity < 0.90) {
-      console.warn(`Low confidence match detected: ${match.similarity.toFixed(4)} for user ${match.name}`);
+    console.log(`Face match found: ${match.name} with similarity ${(match.similarity * 100).toFixed(1)}% (distance: ${match.distance.toFixed(4)})`);
+    
+    // Realistic threshold validation - accept reasonable similarity scores
+    if (match.similarity < SIMILARITY_THRESHOLD) {
+      console.warn(`Low confidence match detected: ${match.similarity.toFixed(4)} (${(match.similarity * 100).toFixed(1)}%) for user ${match.name}. Required: ${(SIMILARITY_THRESHOLD * 100).toFixed(1)}%`);
       return NextResponse.json({
         success: false,
-        error: 'Kecocokan wajah terlalu rendah, silakan coba lagi'
+        error: `Kecocokan wajah terlalu rendah (${(match.similarity * 100).toFixed(1)}%). Silakan posisikan wajah dengan jelas dan coba lagi.`,
+        debug: {
+          similarity: match.similarity,
+          distance: match.distance,
+          threshold: SIMILARITY_THRESHOLD
+        }
       }, { status: 404 });
     }
 

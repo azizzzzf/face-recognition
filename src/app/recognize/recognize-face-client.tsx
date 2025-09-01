@@ -357,21 +357,22 @@ export default function RecognizeFaceClient() {
     }
   };
 
-  const captureImageForArcFace = async (): Promise<string | null> => {
-    if (!videoRef.current || !canvasRef.current) return null;
-    
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    const context = canvas.getContext('2d');
-    
-    if (!context) return null;
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0);
-    
-    return canvas.toDataURL('image/jpeg', 0.8);
-  };
+  // Commented out unused function to avoid ESLint error
+  // const captureImageForArcFace = async (): Promise<string | null> => {
+  //   if (!videoRef.current || !canvasRef.current) return null;
+  //   
+  //   const canvas = canvasRef.current;
+  //   const video = videoRef.current;
+  //   const context = canvas.getContext('2d');
+  //   
+  //   if (!context) return null;
+  //   
+  //   canvas.width = video.videoWidth;
+  //   canvas.height = video.videoHeight;
+  //   context.drawImage(video, 0, 0);
+  //   
+  //   return canvas.toDataURL('image/jpeg', 0.8);
+  // };
 
   // Proses pengenalan wajah
   const processRecognition = async () => {
@@ -389,8 +390,19 @@ export default function RecognizeFaceClient() {
         throw new Error('Gagal mendeteksi wajah');
       }
       
-      // Konversi Float32Array ke array biasa untuk JSON
-      const descriptorArray = Array.from(result.descriptor);
+      // Konversi Float32Array ke array biasa untuk JSON dengan proper validation
+      const descriptorArray = Array.from(result.descriptor).map(val => {
+        const num = typeof val === 'number' ? val : Number(val);
+        return isNaN(num) ? 0 : num; // Handle any potential NaN values
+      });
+      
+      console.log('Descriptor conversion completed:', {
+        originalType: result.descriptor.constructor.name,
+        originalLength: result.descriptor.length,
+        convertedLength: descriptorArray.length,
+        sample: descriptorArray.slice(0, 5),
+        allNumbers: descriptorArray.every(val => typeof val === 'number' && !isNaN(val))
+      });
       
       // Capture image for ArcFace recognition (currently unused)
       // const currentImage = await captureImageForArcFace();
@@ -404,6 +416,7 @@ export default function RecognizeFaceClient() {
       let faceApiResult = null;
       
       try {
+        console.log('Sending recognition request to API...');
         // Try Face-API.js recognition
         const response = await fetch('/api/recognize-face', {
           method: 'POST',
@@ -413,11 +426,22 @@ export default function RecognizeFaceClient() {
           body: payload,
         });
         
+        console.log(`API Response status: ${response.status} ${response.statusText}`);
+        
         if (response.ok) {
           faceApiResult = await response.json();
+          console.log('Face-API.js recognition successful:', faceApiResult);
+        } else {
+          // Get error details from response
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.warn('Face-API.js recognition failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          });
         }
       } catch (error) {
-        console.warn('Face-API.js recognition failed:', error);
+        console.error('Face-API.js recognition network error:', error);
       }
       
       // Use Face-API.js result as the final result
@@ -438,11 +462,22 @@ export default function RecognizeFaceClient() {
         setShowRecognitionResult(true);
       } else {
         setRecognitionStatus('error');
+        const errorMsg = finalResult?.error || 'Wajah tidak dikenali oleh sistem';
         setRecognitionResult({
           success: false,
-          error: 'Wajah tidak dikenali oleh sistem'
+          error: errorMsg
         });
-        setErrorMessage('Wajah tidak terdaftar dalam sistem atau tidak dapat dikenali');
+        
+        // Provide more helpful error messages based on the error type
+        if (errorMsg.includes('tidak terdaftar')) {
+          setErrorMessage('Wajah tidak terdaftar dalam sistem. Pastikan wajah Anda sudah didaftarkan terlebih dahulu.');
+        } else if (errorMsg.includes('terlalu rendah')) {
+          setErrorMessage('Kecocokan wajah terlalu rendah. Silakan posisikan wajah dengan jelas, pastikan pencahayaan cukup, dan coba lagi.');
+        } else if (errorMsg.includes('service not available')) {
+          setErrorMessage('Layanan pengenalan wajah sedang tidak tersedia. Silakan hubungi administrator.');
+        } else {
+          setErrorMessage(errorMsg);
+        }
       }
     } catch (error: unknown) {
       console.error('Kesalahan pengenalan:', error);
