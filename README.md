@@ -1,6 +1,6 @@
-# Face Recognition Benchmark System
+# Face API Attendance - Monorepo
 
-A comprehensive web application that compares the performance of Face-api.js (client-side) vs ArcFace (server-side) face recognition models with multi-angle face capture for enhanced accuracy.
+A comprehensive face recognition attendance system built with Next.js frontend and FastAPI backend, organized as a monorepo for better code sharing and maintainability.
 
 ## Features
 
@@ -31,6 +31,35 @@ A comprehensive web application that compares the performance of Face-api.js (cl
 - PostgreSQL (via Supabase)
 - Prisma ORM
 
+## Project Structure
+
+```
+face-api-attendance/
+├── apps/
+│   ├── web/                 # Next.js frontend
+│   │   ├── src/
+│   │   │   ├── app/         # App router pages
+│   │   │   ├── components/  # React components
+│   │   │   └── lib/         # Utilities
+│   │   └── package.json
+│   └── api/                 # FastAPI backend
+│       ├── main.py          # FastAPI app
+│       ├── arcface_service.py
+│       ├── database_service.py
+│       ├── venv/            # Python virtual environment
+│       └── requirements.txt
+├── packages/
+│   ├── ui/                  # Shared UI components
+│   ├── utils/               # Shared utilities
+│   └── types/               # Shared TypeScript types
+├── prisma/
+│   └── schema.prisma        # Database schema
+├── scripts/                 # Development scripts
+├── package.json             # Root package.json
+├── turbo.json              # Turbo configuration
+└── .env                    # Environment variables
+```
+
 ## Architecture
 
 ```
@@ -48,57 +77,75 @@ A comprehensive web application that compares the performance of Face-api.js (cl
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ 
+- pnpm (recommended package manager)
 - Python 3.8+
 - PostgreSQL database (Supabase account)
 
-### 1. Frontend Setup
+### Quick Setup
 
 ```bash
-# Clone and install dependencies
+# 1. Clone and install all dependencies
 cd face-api-attendance
-npm install
+pnpm install
+
+# 2. Setup Python environment and dependencies (one-time setup)
+pnpm run setup
+
+# 3. Configure environment variables
+# Edit .env file with your database credentials
+
+# 4. Download InsightFace models (required for backend)
+cd apps/api
+./download-models.sh
+cd ../..
+
+# 5. Start both frontend and backend
+pnpm run dev
+```
+
+### Development Scripts
+
+- `pnpm run dev` - Start both frontend and backend in parallel
+- `pnpm run dev:web` - Start only the frontend (localhost:3000)
+- `pnpm run dev:api` - Start only the backend API (localhost:8000)
+- `pnpm run kill-ports` - Kill any processes using port 8000
+- `pnpm run setup` - Complete project setup (dependencies + Python env)
+
+### Manual Setup (Alternative)
+
+#### Frontend Setup
+```bash
+# Install dependencies
+pnpm install
 
 # Setup environment variables
-cp .env.example .env.local
-
-# Add your Supabase credentials to .env.local:
+# Edit .env file with your Supabase credentials:
 # DATABASE_URL="your_supabase_postgres_url"
 # DIRECT_URL="your_supabase_direct_url"
 
-# Generate Prisma client
-chmod +x node_modules/.bin/prisma
-node_modules/.bin/prisma generate
-
-# Start development server
-npm run dev
+# Start frontend only
+pnpm run dev:web
 ```
 
-### 2. Backend Setup
-
-**⚠️ Important: Download InsightFace models first to avoid timeouts!**
-
+#### Backend Setup
 ```bash
-# Navigate to backend directory
-cd backend
+# Navigate to API directory
+cd apps/api
 
 # Create virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
 
-# Setup environment variables
-cp .env.example .env
-# Edit .env with your database credentials
-
-# IMPORTANT: Download InsightFace models before starting server
+# Download InsightFace models (important!)
 ./download-models.sh
-# OR manually: python download_models.py
 
-# Start FastAPI server
-./start-backend.sh
+# Start backend only
+cd ../..
+pnpm run dev:api
 # OR manually: python main.py
 ```
 
@@ -161,10 +208,13 @@ Results show:
 - `GET /users` - Get all registered users
 - `GET /benchmark-results` - Get benchmark history
 
-### Frontend (Next.js) - Port 3000
+### Frontend API Routes (Next.js) - Port 3000
 
 - `POST /api/register-face` - Register with face-api.js
 - `POST /api/recognize-face` - Recognize with face-api.js
+- `POST /api/benchmark-recognize` - Benchmark face recognition
+- `GET /api/users` - Get registered users
+- `GET /api/logs` - Get attendance logs
 
 ## Performance Comparison
 
@@ -179,7 +229,7 @@ Results show:
 
 **Problem**: Backend times out or fails to start
 ```
-❌ Failed to initialize ArcFace: [timeout error]
+Failed to initialize ArcFace: [timeout error]
 ```
 
 **Solutions**:
@@ -222,7 +272,7 @@ Results show:
 1. **Create .env file**:
    ```bash
    cd backend
-   cp .env.example .env
+   # Create .env file with database configuration
    ```
 2. **Add your database URL** to `.env`:
    ```

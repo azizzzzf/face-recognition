@@ -1,181 +1,135 @@
-import { KnownFace } from '@/generated/prisma';
-
-// Interface untuk struktur deskriptor wajah
-interface FaceDescriptorMap {
-  [id: string]: {
-    id: string;
-    name: string;
-    descriptor: Float32Array;
-  };
+interface KnownFace {
+  id: string;
+  name: string;
+  faceApiDescriptor: number[]; // Ensure consistent number array type
 }
 
-// Cache untuk deskriptor
-let faceDescriptors: FaceDescriptorMap = {};
-let isInitialized = false;
-
-/**
- * Mengkonversi array biasa menjadi Float32Array untuk perhitungan yang lebih efisien
- */
-export function toFloat32Array(array: number[]): Float32Array {
-  return new Float32Array(array);
+interface FaceMatch {
+  userId: string;
+  name: string;
+  distance: number;
+  similarity: number;
 }
 
-/**
- * Menghitung jarak Euclidean antara dua descriptor
- * dengan optimasi untuk kecepatan
- */
-export function calculateEuclideanDistance(
-  descriptor1: Float32Array | number[],
-  descriptor2: Float32Array | number[]
-): number {
-  if (!descriptor1 || !descriptor2) {
-    throw new Error('Kedua descriptor harus tersedia');
-  }
+const faceDescriptors: Map<string, { name: string; descriptor: number[] }> = new Map();
+let descriptorsLoaded = false;
 
-  const desc1 = descriptor1 instanceof Float32Array ? descriptor1 : toFloat32Array(descriptor1);
-  const desc2 = descriptor2 instanceof Float32Array ? descriptor2 : toFloat32Array(descriptor2);
-
-  // Implementasi Euclidean distance yang dioptimasi
-  let sum = 0;
-  for (let i = 0; i < desc1.length; i++) {
-    const diff = desc1[i] - desc2[i];
-    sum += diff * diff; // Lebih cepat dari Math.pow(diff, 2)
-  }
-  return Math.sqrt(sum);
+export function isDescriptorsLoaded(): boolean {
+  return descriptorsLoaded;
 }
 
-/**
- * Menghitung jarak L2 (cosine distance) antara dua descriptor
- * dengan normalisasi untuk akurasi lebih tinggi
- */
-export function calculateL2Distance(
-  descriptor1: Float32Array | number[],
-  descriptor2: Float32Array | number[]
-): number {
-  if (!descriptor1 || !descriptor2) {
-    throw new Error('Kedua descriptor harus tersedia');
-  }
-
-  const desc1 = descriptor1 instanceof Float32Array ? descriptor1 : toFloat32Array(descriptor1);
-  const desc2 = descriptor2 instanceof Float32Array ? descriptor2 : toFloat32Array(descriptor2);
-
-  // Implementasi dengan normalisasi L2
-  let norm1 = 0, norm2 = 0, dotProduct = 0;
+export async function loadFaceDescriptors(knownFaces: KnownFace[]): Promise<void> {
+  faceDescriptors.clear();
   
-  for (let i = 0; i < desc1.length; i++) {
-    norm1 += desc1[i] * desc1[i];
-    norm2 += desc2[i] * desc2[i];
-    dotProduct += desc1[i] * desc2[i];
-  }
-  
-  norm1 = Math.sqrt(norm1);
-  norm2 = Math.sqrt(norm2);
-  
-  if (norm1 === 0 || norm2 === 0) {
-    return 1.0; // Jarak maksimum
-  }
-  
-  // Cosine similarity = dotProduct / (norm1 * norm2)
-  // Ubah ke jarak untuk konsistensi (1 - similarity)
-  return 1.0 - (dotProduct / (norm1 * norm2));
-}
-
-/**
- * Memuat descriptor wajah ke memori untuk pencocokan cepat
- */
-export async function loadFaceDescriptors(faces: KnownFace[]): Promise<void> {
-  faceDescriptors = {};
-  
-  for (const face of faces) {
-    faceDescriptors[face.id] = {
-      id: face.id,
-      name: face.name,
-      descriptor: toFloat32Array(face.faceApiDescriptor),
-    };
-  }
-  
-  isInitialized = true;
-}
-
-/**
- * Mencari kecocokan terbaik berdasarkan descriptor
- * dengan threshold yang dioptimalkan untuk akurasi >95%
- */
-export function findBestMatch(
-  descriptor: number[],
-  threshold: number = 0.10, // Threshold ketat berdasarkan analisis data: max distance untuk valid match
-  excludeUserId?: string // Optional: exclude specific user from matching (for benchmark testing)
-): { userId: string; name: string; distance: number; similarity: number } | null {
-  if (!isInitialized) {
-    throw new Error('Face descriptors belum dimuat ke memori');
-  }
-
-  const faceIds = Object.keys(faceDescriptors);
-  if (faceIds.length === 0) {
-    return null;
-  }
-
-  let bestMatch = {
-    userId: '',
-    name: '',
-    distance: Number.MAX_VALUE,
-    similarity: 0
-  };
-
-  // Gunakan L2 distance normalisasi untuk akurasi lebih tinggi
-  const queryDesc = toFloat32Array(descriptor);
-  
-  // Cari jarak terkecil (kecocokan terbaik)
-  let excludedCount = 0;
-  for (const faceId of faceIds) {
-    const face = faceDescriptors[faceId];
-    
-    // Skip if this user should be excluded (for benchmark testing)
-    if (excludeUserId && face.id === excludeUserId) {
-      excludedCount++;
-      continue;
-    }
-    
-    // Gunakan L2 distance untuk akurasi lebih baik
-    const distance = calculateL2Distance(queryDesc, face.descriptor);
-    const similarity = 1 - distance;
-    
-    if (distance < bestMatch.distance) {
-      bestMatch = {
-        userId: face.id,
+  for (const face of knownFaces) {
+    if (face.faceApiDescriptor && Array.isArray(face.faceApiDescriptor) && face.faceApiDescriptor.length === 128) {
+      // Ensure all values are properly converted to numbers
+      const normalizedDescriptor = face.faceApiDescriptor.map(val => {
+        const num = typeof val === 'number' ? val : Number(val);
+        return isNaN(num) ? 0 : num; // Handle any NaN values
+      });
+      
+      faceDescriptors.set(face.id, {
         name: face.name,
-        distance,
-        similarity: 1 - distance
-      };
+        descriptor: normalizedDescriptor
+      });
+      
+      console.log(`Loaded face descriptor for ${face.name} (ID: ${face.id}) with ${normalizedDescriptor.length} dimensions`);
+    } else {
+      console.warn(`Skipping invalid face descriptor for ${face.name} (ID: ${face.id}): descriptor length = ${face.faceApiDescriptor?.length || 'undefined'}`);
     }
   }
   
-  // Log summary for debugging if needed
-  console.log(`Face matching: checked ${faceIds.length - excludedCount}/${faceIds.length} users, best: ${bestMatch.name} (${(bestMatch.similarity * 100).toFixed(1)}%)`);
+  descriptorsLoaded = true;
+  console.log(`Successfully loaded ${faceDescriptors.size} face descriptors into memory`);
+}
 
-  // Verifikasi jika kecocokan berada di bawah threshold (lebih ketat)
-  if (bestMatch.distance > threshold) {
+export function findBestMatch(targetDescriptor: number[], threshold: number): FaceMatch | null {
+  if (!descriptorsLoaded || faceDescriptors.size === 0) {
+    console.log('Face descriptors not loaded or empty');
     return null;
   }
-  
-  // Return genuine similarity score without artificial scaling
-  // This ensures accurate benchmark comparison with ArcFace
-  bestMatch.similarity = bestMatch.similarity; 
+
+  console.log(`Finding best match among ${faceDescriptors.size} stored faces with threshold ${threshold}`);
+
+  let bestMatch: FaceMatch | null = null;
+  let minDistance = Infinity;
+  const matchResults: {name: string, distance: number, similarity: number}[] = [];
+
+  // Normalize target descriptor
+  const normalizedTarget = targetDescriptor.map(val => {
+    const num = typeof val === 'number' ? val : Number(val);
+    return isNaN(num) ? 0 : num;
+  });
+
+  for (const [userId, { name, descriptor }] of faceDescriptors.entries()) {
+    try {
+      const distance = euclideanDistance(normalizedTarget, descriptor);
+      
+      // Convert distance to similarity score - improved calculation
+      // Using a more realistic similarity conversion for face recognition
+      const similarity = Math.max(0, 1 - (distance / 4)); // Adjust divisor based on typical face descriptor ranges
+      
+      matchResults.push({ name, distance, similarity });
+      
+      if (distance < minDistance && distance < threshold) {
+        minDistance = distance;
+        bestMatch = {
+          userId,
+          name,
+          distance,
+          similarity
+        };
+      }
+    } catch (error) {
+      console.warn(`Error calculating distance for face ${name}:`, error);
+    }
+  }
+
+  // Log all match attempts for debugging
+  console.log('Match results:');
+  matchResults
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 5) // Show top 5 matches
+    .forEach(result => {
+      console.log(`  ${result.name}: distance=${result.distance.toFixed(4)}, similarity=${(result.similarity * 100).toFixed(1)}%`);
+    });
+
+  if (bestMatch) {
+    console.log(`Best match found: ${bestMatch.name} with distance ${bestMatch.distance.toFixed(4)} and similarity ${(bestMatch.similarity * 100).toFixed(1)}%`);
+  } else {
+    console.log(`No match found within threshold ${threshold}`);
+  }
 
   return bestMatch;
 }
 
-/**
- * Mengecek apakah descriptor sudah dimuat ke memori
- */
-export function isDescriptorsLoaded(): boolean {
-  return isInitialized;
-}
+function euclideanDistance(descriptor1: number[], descriptor2: number[]): number {
+  if (!descriptor1 || !descriptor2) {
+    throw new Error('Invalid descriptors: one or both descriptors are null/undefined');
+  }
+  
+  if (descriptor1.length !== descriptor2.length) {
+    throw new Error(`Descriptors must have the same length. Got ${descriptor1.length} and ${descriptor2.length}`);
+  }
+  
+  if (descriptor1.length !== 128) {
+    throw new Error(`Expected descriptor length of 128, got ${descriptor1.length}`);
+  }
 
-/**
- * Reset cache descriptor
- */
-export function resetDescriptors(): void {
-  faceDescriptors = {};
-  isInitialized = false;
-} 
+  let sum = 0;
+  for (let i = 0; i < descriptor1.length; i++) {
+    const val1 = descriptor1[i];
+    const val2 = descriptor2[i];
+    
+    // Validate numeric values
+    if (typeof val1 !== 'number' || typeof val2 !== 'number' || isNaN(val1) || isNaN(val2)) {
+      throw new Error(`Non-numeric values found at index ${i}: ${val1}, ${val2}`);
+    }
+    
+    const diff = val1 - val2;
+    sum += diff * diff;
+  }
+
+  return Math.sqrt(sum);
+}

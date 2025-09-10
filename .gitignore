@@ -42,3 +42,23 @@ next-env.d.ts
 
 # YoYo AI version control directory
 .yoyo/
+
+
+# Logs
+*.log
+logs/
+
+# Test files and outputs
+/tests/output/
+/tests/coverage/
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# IDE
+.vscode/
+.idea/

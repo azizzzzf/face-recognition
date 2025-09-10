@@ -1,8 +1,35 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { updateSession } from '@/lib/supabase/middleware';
+import { getUserBySupabaseId } from '@/lib/auth';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const { user: supabaseUser } = await updateSession(request);
+    if (!supabaseUser) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const appUser = await getUserBySupabaseId(supabaseUser.id);
+    if (!appUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Only admins can register faces
+    if (appUser.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Insufficient permissions' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json().catch(() => null);
     
     if (!body) {
@@ -12,7 +39,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, descriptor, userId, multiAngle = false, arcfaceDescriptor, enrollmentImages } = body;
+    console.log('Received registration request:', {
+      name: body.name,
+      hasDescriptor: !!body.descriptor,
+      descriptorLength: body.descriptor?.length,
+      hasEnrollmentImages: !!body.enrollmentImages,
+      enrollmentImagesCount: body.enrollmentImages?.length,
+      userId: body.userId,
+      multiAngle: body.multiAngle
+    });
+
+    const { name, descriptor, userId, multiAngle = false, enrollmentImages } = body;
 
     // Validasi nama
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -38,11 +75,47 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validasi semua nilai descriptor adalah angka
-    if (!descriptor.every((val) => typeof val === 'number')) {
+    // Validasi dan normalize semua nilai descriptor adalah angka
+    const normalizedDescriptor = descriptor.map(val => {
+      const num = typeof val === 'number' ? val : Number(val);
+      if (isNaN(num)) {
+        return null; // Mark invalid values
+      }
+      return num;
+    });
+
+    // Check if any values were invalid
+    if (normalizedDescriptor.includes(null)) {
       return NextResponse.json(
-        { error: 'All descriptor values must be numbers' },
+        { error: 'All descriptor values must be valid numbers' },
         { status: 400 }
+      );
+    }
+
+    // Check for existing users with the same name to prevent duplicates
+    const existingUser = await prisma.knownFace.findFirst({
+      where: {
+        name: {
+          equals: name.trim(),
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (existingUser) {
+      console.log('Duplicate user detected:', {
+        requestedName: name,
+        existingUserId: existingUser.id,
+        existingUserName: existingUser.name
+      });
+      
+      return NextResponse.json(
+        { 
+          error: 'User already exists',
+          details: `Pengguna dengan nama "${name}" sudah terdaftar. Gunakan nama yang berbeda atau hapus pengguna yang sudah ada terlebih dahulu.`,
+          existingUserId: existingUser.id
+        },
+        { status: 409 }
       );
     }
     // Handle existing user with ID (for multi-angle registration)
@@ -51,16 +124,10 @@ export async function POST(request: Request) {
         // Prepare update data
         const updateData: {
           faceApiDescriptor: number[];
-          arcfaceDescriptor?: number[];
           enrollmentImages?: string;
         } = {
-          faceApiDescriptor: descriptor,
+          faceApiDescriptor: normalizedDescriptor as number[],
         };
-        
-        // Add ArcFace descriptor if provided
-        if (arcfaceDescriptor && Array.isArray(arcfaceDescriptor)) {
-          updateData.arcfaceDescriptor = arcfaceDescriptor;
-        }
         
         // Add enrollment images if provided
         if (enrollmentImages && Array.isArray(enrollmentImages)) {
@@ -76,8 +143,7 @@ export async function POST(request: Request) {
         return NextResponse.json({
           ...updatedFace,
           message: `Descriptors updated for ${name}`,
-          multiAngle,
-          arcfaceEnabled: !!arcfaceDescriptor
+          multiAngle
         }, { status: 200 });
         
       } catch (updateError) {
@@ -86,33 +152,50 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create new user (legacy support or new registration)
+    // Create new user record with Face-API descriptor
     const createData: {
       name: string;
       faceApiDescriptor: number[];
-      arcfaceDescriptor: number[];
       enrollmentImages: string;
     } = {
       name,
-      faceApiDescriptor: descriptor,
-      arcfaceDescriptor: arcfaceDescriptor || [], // Use provided ArcFace descriptor or empty array
-      enrollmentImages: enrollmentImages ? JSON.stringify(enrollmentImages) : '[]', // Use provided images or empty array
+      faceApiDescriptor: normalizedDescriptor as number[],
+      enrollmentImages: enrollmentImages ? JSON.stringify(enrollmentImages) : '[]',
     };
+    
+    console.log('Creating face record with data:', {
+      name: createData.name,
+      faceApiDescriptorLength: createData.faceApiDescriptor.length,
+      enrollmentImagesLength: createData.enrollmentImages.length,
+      descriptorSample: createData.faceApiDescriptor.slice(0, 5), // First 5 values for validation
+      descriptorType: typeof createData.faceApiDescriptor[0]
+    });
     
     const createdFace = await prisma.knownFace.create({
       data: createData,
     });
 
+    console.log('Face record created successfully:', createdFace.id);
+    console.log('User registered successfully with Face-API descriptor');
+
     return NextResponse.json({
       ...createdFace,
       message: `Face registered successfully for ${name}`,
-      multiAngle,
-      arcfaceEnabled: !!arcfaceDescriptor
+      multiAngle
     }, { status: 201 });
   } catch (error) {
     console.error('Error registering face:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      name: error instanceof Error ? error.name : 'Unknown error type'
+    });
+    
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { 
+        error: 'Internal Server Error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
