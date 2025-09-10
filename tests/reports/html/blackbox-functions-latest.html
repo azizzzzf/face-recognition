@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function-Based Blackbox Test Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+        .summary-card h3 { margin: 0 0 10px 0; color: #333; font-size: 0.9rem; }
+        .summary-card .number { font-size: 2em; font-weight: bold; margin-bottom: 5px; }
+        .passed { color: #4CAF50; }
+        .failed { color: #f44336; }
+        .total { color: #2196F3; }
+        .rate { color: #FF9800; }
+        
+        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .category-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .category-card h3 { color: #333; margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+        .stat { padding: 10px; border-radius: 5px; }
+        .stat.passed { background: #E8F5E8; color: #2E7D32; }
+        .stat.failed { background: #FFEBEE; color: #C62828; }
+        .stat.total { background: #E3F2FD; color: #1565C0; }
+        .stat-number { font-size: 1.5em; font-weight: bold; }
+        .stat-label { font-size: 0.8em; margin-top: 5px; }
+        
+        .definition { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #4CAF50; }
+        .definition h3 { margin-top: 0; color: #2E7D32; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        th { background: #333; color: white; padding: 15px; text-align: left; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        
+        .status-success { color: #4CAF50; font-weight: bold; }
+        .status-partial { color: #FF9800; font-weight: bold; }
+        .status-error { color: #f44336; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Function-Based Blackbox Test Report</h1>
+        <p>Testing aplikasi dari perspektif user (Input → Output)</p>
+        <p>Generated: 1/9/2025, 14.24.40</p>
+    </div>
+
+    <div class="definition">
+        <h3>📚 Pengertian Blackbox Testing</h3>
+        <p><strong>Blackbox Testing</strong> adalah metode pengujian perangkat lunak yang berfokus pada <strong>fungsionalitas sistem dari sudut pandang pengguna</strong> tanpa mengetahui struktur internal atau kode sumbernya.</p>
+        <p><strong>Tujuan:</strong> Memvalidasi apakah perangkat lunak menghasilkan <strong>output yang sesuai dengan input yang diberikan</strong>.</p>
+        <p><strong>Focus:</strong> Input → Process → Output untuk setiap function pada halaman aplikasi.</p>
+    </div>
+
+    <div class="summary">
+        <div class="summary-card">
+            <h3>Total Tests</h3>
+            <div class="number total">0</div>
+            <div>Function tests</div>
+        </div>
+        <div class="summary-card">
+            <h3>Passed</h3>
+            <div class="number passed">0</div>
+            <div>Successful functions</div>
+        </div>
+        <div class="summary-card">
+            <h3>Failed</h3>
+            <div class="number failed">0</div>
+            <div>Failed functions</div>
+        </div>
+        <div class="summary-card">
+            <h3>Pass Rate</h3>
+            <div class="number rate">0%</div>
+            <div>Success rate</div>
+        </div>
+        <div class="summary-card">
+            <h3>Duration</h3>
+            <div class="number">27s</div>
+            <div>Total execution time</div>
+        </div>
+    </div>
+
+    <h2>📋 Function Categories Results</h2>
+    <div class="categories">
+        
+        <div class="category-card">
+            <h3>🔐 Login Functions</h3>
+            <div class="stats">
+                <div class="stat passed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat failed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat total">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+            <p style="margin-top: 10px; color: #666; text-align: center;">
+                Duration: 6s | Status: 
+                <span class="status-error">ERROR</span>
+            </p>
+        </div>
+        
+        <div class="category-card">
+            <h3>📝 Registration Functions</h3>
+            <div class="stats">
+                <div class="stat passed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat failed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat total">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+            <p style="margin-top: 10px; color: #666; text-align: center;">
+                Duration: 6s | Status: 
+                <span class="status-error">ERROR</span>
+            </p>
+        </div>
+        
+        <div class="category-card">
+            <h3>📷 Face Registration Functions</h3>
+            <div class="stats">
+                <div class="stat passed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat failed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat total">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+            <p style="margin-top: 10px; color: #666; text-align: center;">
+                Duration: 8s | Status: 
+                <span class="status-error">ERROR</span>
+            </p>
+        </div>
+        
+        <div class="category-card">
+            <h3>🎯 Face Recognition Functions</h3>
+            <div class="stats">
+                <div class="stat passed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat failed">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat total">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+            <p style="margin-top: 10px; color: #666; text-align: center;">
+                Duration: 7s | Status: 
+                <span class="status-error">ERROR</span>
+            </p>
+        </div>
+        
+    </div>
+
+    <h2>📊 Detailed Results Table</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Function Category</th>
+                <th>Passed</th>
+                <th>Failed</th>
+                <th>Total</th>
+                <th>Duration</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td>🔐 Login Functions</td>
+                <td style="color: #4CAF50; font-weight: bold;">0</td>
+                <td style="color: #f44336; font-weight: bold;">0</td>
+                <td>0</td>
+                <td>6s</td>
+                <td><span class="status-error">ERROR</span></td>
+            </tr>
+            
+            <tr>
+                <td>📝 Registration Functions</td>
+                <td style="color: #4CAF50; font-weight: bold;">0</td>
+                <td style="color: #f44336; font-weight: bold;">0</td>
+                <td>0</td>
+                <td>6s</td>
+                <td><span class="status-error">ERROR</span></td>
+            </tr>
+            
+            <tr>
+                <td>📷 Face Registration Functions</td>
+                <td style="color: #4CAF50; font-weight: bold;">0</td>
+                <td style="color: #f44336; font-weight: bold;">0</td>
+                <td>0</td>
+                <td>8s</td>
+                <td><span class="status-error">ERROR</span></td>
+            </tr>
+            
+            <tr>
+                <td>🎯 Face Recognition Functions</td>
+                <td style="color: #4CAF50; font-weight: bold;">0</td>
+                <td style="color: #f44336; font-weight: bold;">0</td>
+                <td>0</td>
+                <td>7s</td>
+                <td><span class="status-error">ERROR</span></td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    <div style="margin-top: 40px; text-align: center; color: #666;">
+        <p>🚀 Face Recognition App - Function-Based Blackbox Testing</p>
+        <p>Generated by automated testing suite</p>
+    </div>
+</body>
+</html>

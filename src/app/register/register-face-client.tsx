@@ -6,7 +6,7 @@ import NextImage from 'next/image';
 import * as faceapi from '@vladmandic/face-api';
 import { Button } from '@/ui/button';
 import { Alert, AlertDescription } from '@/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
+import { Card, CardContent } from '@/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
 import { MultiAngleCapture } from '@/components/MultiAngleCapture';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -49,7 +49,6 @@ export default function RegisterFaceClient() {
   const { appUser } = useUser();
   
   const { control, handleSubmit, formState: { errors }, reset, watch } = useForm<FormData>();
-  const selectedUserIdValue = watch('selectedUserId');
 
   // Check admin permission
   useEffect(() => {
@@ -164,11 +163,6 @@ export default function RegisterFaceClient() {
   };
 
   // Handle registration form submission
-  const onSubmit = async (data: FormData) => {
-    if (capturedImages.length === 0) {
-      setErrorMessage('Tidak ada gambar untuk diproses.');
-      return;
-    }
 
     if (!selectedUser) {
       setErrorMessage('Silakan pilih pengguna terlebih dahulu.');
