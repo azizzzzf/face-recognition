@@ -48,7 +48,7 @@ export default function RegisterFaceClient() {
   const { user, loading } = useAuth();
   const { appUser } = useUser();
   
-  const { control, handleSubmit, formState: { errors }, reset, watch } = useForm<FormData>();
+  const { control, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
 
   // Check admin permission
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function RegisterFaceClient() {
   };
 
   // Handle registration form submission
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async () => {
     if (capturedImages.length === 0) {
       setErrorMessage('Tidak ada gambar untuk diproses.');
       return;
