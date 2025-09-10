@@ -54,7 +54,7 @@ export function AuthForm({ mode, onSubmit, loading = false }: AuthFormProps) {
         setSuccess(mode === 'login' ? 'Login berhasil!' : 'Registrasi berhasil!')
         reset()
       }
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan yang tidak terduga')
     }
   }

@@ -32,9 +32,9 @@ export interface ExportOption {
   disabled?: boolean;
 }
 
-export interface ExportButtonProps {
+export interface ExportButtonProps<T = Record<string, unknown>> {
   // Data to export
-  data: any[];
+  data: T[];
   
   // Export options
   formats?: ExportFormat[];
@@ -45,12 +45,12 @@ export interface ExportButtonProps {
   generateFilename?: (format: ExportFormat, timestamp: Date) => string;
   
   // Data processing
-  onExport?: (data: any[], format: ExportFormat) => void | Promise<void>;
-  processData?: (data: any[], format: ExportFormat) => any[];
+  onExport?: (data: T[], format: ExportFormat) => void | Promise<void>;
+  processData?: (data: T[], format: ExportFormat) => T[];
   
   // Filtering
   includeFilters?: boolean;
-  filterState?: Record<string, any>;
+  filterState?: Record<string, unknown>;
   
   // UI customization
   variant?: "default" | "outline" | "ghost";
@@ -151,7 +151,7 @@ export function ExportButton({
   };
 
   // Convert data to CSV
-  const convertToCSV = (exportData: any[]) => {
+  const convertToCSV = (exportData: Record<string, unknown>[]) => {
     if (exportData.length === 0) return "";
     
     const headers = Object.keys(exportData[0]).join(",");
@@ -172,7 +172,7 @@ export function ExportButton({
   };
 
   // Convert data to text
-  const convertToText = (exportData: any[]) => {
+  const convertToText = (exportData: Record<string, unknown>[]) => {
     if (exportData.length === 0) return "";
     
     return exportData
@@ -385,7 +385,7 @@ export function ExportButton({
 }
 
 // Quick export functions
-export const exportToCSV = (data: any[], filename?: string) => {
+export const exportToCSV = (data: Record<string, unknown>[], filename?: string) => {
   const csvContent = data.length > 0 
     ? [
         Object.keys(data[0]).join(","),
@@ -409,7 +409,7 @@ export const exportToCSV = (data: any[], filename?: string) => {
   URL.revokeObjectURL(url);
 };
 
-export const exportToJSON = (data: any[], filename?: string) => {
+export const exportToJSON = (data: Record<string, unknown>[], filename?: string) => {
   const jsonContent = JSON.stringify(data, null, 2);
   
   const blob = new Blob([jsonContent], { type: "application/json" });

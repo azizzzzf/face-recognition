@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import * as faceapi from '@vladmandic/face-api';
 import { Button } from '@/ui/button';
 import { Alert, AlertDescription } from '@/ui/alert';
@@ -66,8 +66,9 @@ export default function RecognizeFaceClient() {
     
     // Cleanup saat komponen di-unmount
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
+      const video = videoRef.current;
+      if (video && video.srcObject) {
+        const stream = video.srcObject as MediaStream;
         const tracks = stream.getTracks();
         tracks.forEach(track => track.stop());
         setIsCameraActive(false);
@@ -78,10 +79,10 @@ export default function RecognizeFaceClient() {
         window.clearInterval(detectionIntervalRef.current);
       }
     };
-  }, []);
+  }, [startCamera]);
 
   // Mengaktifkan kamera
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     try {
       // Gunakan resolusi persegi untuk menghindari distorsi
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -111,7 +112,7 @@ export default function RecognizeFaceClient() {
       setErrorMessage('Tidak dapat mengakses kamera. Pastikan kamera terhubung dan izin diberikan.');
       setIsCameraActive(false);
     }
-  };
+  }, [setupRealTimeDetection]);
   
   // Setup deteksi real-time untuk landmark wajah
   const setupRealTimeDetection = () => {

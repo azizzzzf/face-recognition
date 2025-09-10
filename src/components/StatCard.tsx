@@ -2,14 +2,12 @@
 
 import * as React from "react";
 import { 
-  TrendingUp, 
-  TrendingDown,
   Minus,
   ArrowUp,
   ArrowDown,
   MoreVertical
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Card, CardContent } from "@/ui/card";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { cn } from "@/lib/utils";
@@ -128,7 +126,6 @@ export function StatCard({
 
     const isPositive = trend.direction === "up";
     const isNegative = trend.direction === "down";
-    const isNeutral = trend.direction === "neutral";
 
     let trendIcon;
     let trendClass;

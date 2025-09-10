@@ -11,11 +11,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Create a mock Supabase user object for the function
-    const supabaseUser = {
+    const supabaseUser: {
+      id: string;
+      email: string;
+      user_metadata: { name: string };
+    } = {
       id: supabaseId,
       email,
       user_metadata: { name }
-    } as any
+    }
 
     const userData = {
       name,

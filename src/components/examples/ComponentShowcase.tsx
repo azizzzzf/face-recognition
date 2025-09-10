@@ -19,26 +19,22 @@ import {
   Users, 
   TrendingUp, 
   Brain,
-  Plus,
-  Search,
-  Download
+  Plus
 } from "lucide-react";
 
 // Import our custom components
 import { DataTable, DataTableColumn } from "@/ui/data-table";
 import { SearchFilter, SelectFilter, DateRangeFilter } from "@/components/SearchFilter";
-import { ConfirmDialog, DeleteConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog";
+import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog";
 import { StatCard, MetricCard, KPICard } from "@/components/StatCard";
 import { ActionMenu, TableRowActionMenu } from "@/components/ActionMenu";
 import { ExportButton } from "@/components/ExportButton";
 import { 
-  Skeleton,
   TableSkeleton, 
   StatCardSkeleton, 
   PageSkeleton 
 } from "@/components/LoadingSkeleton";
 import { 
-  EmptyState, 
   NoDataEmptyState, 
   NoResultsEmptyState,
   TableEmptyState 
@@ -95,7 +91,7 @@ const mockAttendanceData: AttendanceRecord[] = [
 export function ComponentShowcase() {
   // State management
   const [attendanceData, setAttendanceData] = React.useState<AttendanceRecord[]>(mockAttendanceData);
-  const [loading, setLoading] = React.useState(false);
+  const [loading] = React.useState(false);
   const [selectedRecord, setSelectedRecord] = React.useState<AttendanceRecord | null>(null);
   
   // Filter state
@@ -214,7 +210,7 @@ export function ComponentShowcase() {
     });
   };
 
-  const handleExport = async (data: any[], format: string) => {
+  const handleExport = async (data: Record<string, unknown>[], format: string) => {
     console.log(`Exporting ${data.length} records as ${format}`);
     // Simulate export delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -224,12 +220,12 @@ export function ComponentShowcase() {
     console.log("Add new attendance record");
   };
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setLoading(false);
-  };
+  // const handleRefresh = async () => {
+  //   setLoading(true);
+  //   // Simulate API call
+  //   await new Promise(resolve => setTimeout(resolve, 2000));
+  //   setLoading(false);
+  // };
 
   // Mock stats data
   const statsData = {

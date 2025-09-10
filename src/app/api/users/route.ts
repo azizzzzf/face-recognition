@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 100);
     
     // Build where conditions for users
-    const whereConditions: any = {};
+    const whereConditions: Record<string, unknown> = {};
     
     // Search by name filter
     if (search) {

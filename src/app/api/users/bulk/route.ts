@@ -128,7 +128,7 @@ export async function POST(request: Request) {
     }
 
     // Build where conditions
-    const whereConditions: any = {};
+    const whereConditions: Record<string, unknown> = {};
     if (userIds && Array.isArray(userIds) && userIds.length > 0) {
       whereConditions.id = { in: userIds };
     }

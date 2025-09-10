@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
-import { AppUser, getUserBySupabaseId } from '@/lib/auth'
+import { AppUser } from '@/lib/auth'
 
 interface AuthContextType {
   user: User | null
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setAppUser(null)
       }
-    } catch (error) {
+    } catch {
       console.error('Error fetching app user:', error)
       setAppUser(null)
     }
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       return {}
-    } catch (error) {
+    } catch {
       return { error: 'An unexpected error occurred' }
     }
   }
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       return {}
-    } catch (error) {
+    } catch {
       return { error: 'An unexpected error occurred' }
     }
   }

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { Badge } from '@/ui/badge';
 import { Button } from '@/ui/button';
-import { Alert, AlertDescription } from '@/ui/alert';
 import { 
   UserPlus, 
   CheckCircle, 
@@ -14,8 +13,7 @@ import {
   ArrowRight,
   Calendar,
   Activity,
-  Shield,
-  AlertCircle
+  Shield
 } from 'lucide-react';
 
 interface DashboardStats {

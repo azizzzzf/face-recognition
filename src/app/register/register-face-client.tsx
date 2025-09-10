@@ -163,6 +163,11 @@ export default function RegisterFaceClient() {
   };
 
   // Handle registration form submission
+  const onSubmit = async (data: FormData) => {
+    if (capturedImages.length === 0) {
+      setErrorMessage('Tidak ada gambar untuk diproses.');
+      return;
+    }
 
     if (!selectedUser) {
       setErrorMessage('Silakan pilih pengguna terlebih dahulu.');

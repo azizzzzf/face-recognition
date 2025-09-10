@@ -110,7 +110,7 @@ export function ActionMenu({
     }
     
     // Add groups
-    groups.forEach((group, index) => {
+    groups.forEach((group) => {
       if (structure.length > 0 && group.items.length > 0) {
         structure.push({ type: "separator" });
       }
@@ -216,7 +216,7 @@ export function ActionMenu({
     );
   };
 
-  const renderStructureItem = (structureItem: any, index: number) => {
+  const renderStructureItem = (structureItem: { type: string; label?: string; items?: ActionItem[] }, index: number) => {
     if (structureItem.type === "separator") {
       return <DropdownMenuSeparator key={`separator-${index}`} />;
     }

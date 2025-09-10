@@ -62,7 +62,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         removeToast(id);
       }, newToast.duration);
     }
-  }, []);
+  }, [removeToast]);
 
   const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
@@ -239,8 +239,9 @@ export const createToastUtils = (toast: ToastContextType) => ({
   },
 
   // API related
-  apiError: (error: any) => {
-    const message = error?.message || error?.data?.message || 'An error occurred';
+  apiError: (error: unknown) => {
+    const err = error as { message?: string; data?: { message?: string } };
+    const message = err?.message || err?.data?.message || 'An error occurred';
     toast.error('API Error', message);
   },
 

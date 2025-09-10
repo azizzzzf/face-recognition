@@ -43,7 +43,7 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     // Build where conditions
-    const whereConditions: any = { userId: id };
+    const whereConditions: Record<string, unknown> = { userId: id };
 
     // Date range filter
     if (startDate || endDate) {

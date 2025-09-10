@@ -62,7 +62,7 @@ export async function GET(request: Request) {
 
     // Calculate basic metrics
     let uniqueUsersInPeriod = 0;
-    let peakHourData: { [hour: string]: number } = {};
+    const peakHourData: { [hour: string]: number } = {};
 
     if (periodAttendanceRecords.length > 0) {
       uniqueUsersInPeriod = new Set(periodAttendanceRecords.map(record => record.userId)).size;
