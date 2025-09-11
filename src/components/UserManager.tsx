@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card';
 import { Badge } from '@/ui/badge';
 import { Button } from '@/ui/button';
@@ -195,9 +196,11 @@ function UserDetailsModal({ user, isOpen, onClose }: UserDetailsModalProps) {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {enrollmentImages.map((image, index) => (
                   <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                    <img
+                    <Image
                       src={image}
                       alt={`Foto registrasi ${index + 1} dari ${user.name}`}
+                      width={200}
+                      height={200}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;

@@ -46,6 +46,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
+  // Declare removeToast first since addToast depends on it
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = generateId();
     const newToast: Toast = {
@@ -62,11 +67,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         removeToast(id);
       }, newToast.duration);
     }
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
+  }, [removeToast]);
 
   const clearToasts = useCallback(() => {
     setToasts([]);
@@ -239,8 +240,9 @@ export const createToastUtils = (toast: ToastContextType) => ({
   },
 
   // API related
-  apiError: (error: any) => {
-    const message = error?.message || error?.data?.message || 'An error occurred';
+  apiError: (error: unknown) => {
+    const err = error as { message?: string; data?: { message?: string } };
+    const message = err?.message || err?.data?.message || 'An error occurred';
     toast.error('API Error', message);
   },
 

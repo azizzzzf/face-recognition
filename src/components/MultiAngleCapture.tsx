@@ -29,7 +29,7 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
   const [retryCount, setRetryCount] = useState(0)
 
   // Define the 10 different angles/poses
-  const angleInstructions = [
+  const angleInstructions = useMemo(() => [
     "Wajah menghadap lurus ke depan",           // Foto 1
     "Putar kepala sedikit ke kiri",             // Foto 2
     "Putar kepala sedikit ke kanan",            // Foto 3
@@ -40,7 +40,7 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
     "Senyum natural menghadap depan",           // Foto 8
     "Ekspresi serius menghadap depan",          // Foto 9
     "Wajah rileks menghadap depan"              // Foto 10
-  ]
+  ], [])
 
   const startCamera = useCallback(async () => {
     try {
@@ -198,7 +198,7 @@ export function MultiAngleCapture({ onCaptureComplete, isCapturing = false }: Fa
         return prev - 1
       })
     }, 1000)
-  }, [captureImage, stopCamera, onCaptureComplete, isCapturing, countdown, capturedImages, currentAngle])
+  }, [captureImage, stopCamera, onCaptureComplete, isCapturing, countdown, capturedImages, currentAngle, angleInstructions])
 
   const resetCapture = useCallback(() => {
     // Reset all states for multi-angle capture

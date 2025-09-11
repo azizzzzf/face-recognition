@@ -68,7 +68,7 @@ export interface SearchFilterProps {
   
   // Callbacks
   onClearAll?: () => void;
-  onExport?: (filters: Record<string, any>) => void;
+  onExport?: (filters: Record<string, unknown>) => void;
 }
 
 export function SearchFilter({
@@ -310,7 +310,7 @@ export function SearchFilter({
               {searchValue.trim() && (
                 <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md text-xs">
                   <Search className="h-3 w-3" />
-                  <span>"{searchValue.trim()}"</span>
+                  <span>&quot;{searchValue.trim()}&quot;</span>
                 </div>
               )}
               

@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useRef, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { Button } from '@/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
 import { Badge } from '@/ui/badge'
-import { Upload, X, Check, AlertCircle, Image } from 'lucide-react'
+import { Upload, X, Check, AlertCircle, Image as ImageIcon } from 'lucide-react'
 
 interface ImageUploadProps {
   onUploadComplete: (images: string[]) => void
@@ -207,9 +208,11 @@ export function ImageUpload({ onUploadComplete, maxImages = 10 }: ImageUploadPro
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
               {uploadedImages.map((image, index) => (
                 <div key={index} className="relative group">
-                  <img
+                  <Image
                     src={image}
                     alt={`Upload ${index + 1}`}
+                    width={96}
+                    height={96}
                     className="w-full h-16 sm:h-24 object-cover rounded border shadow-sm"
                   />
                   <button
@@ -239,7 +242,7 @@ export function ImageUpload({ onUploadComplete, maxImages = 10 }: ImageUploadPro
               size="lg"
               className="text-lg px-6 py-3"
             >
-              <Image className="h-5 w-5 mr-2" />
+              <ImageIcon className="h-5 w-5 mr-2" />
               Tambah Foto Lagi
             </Button>
           )}

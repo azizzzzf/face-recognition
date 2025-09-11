@@ -122,3 +122,51 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Anti-flash styles for smooth transitions */
+@layer utilities {
+  /* Prevent flash content during auth transitions */
+  .anti-flash {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+  }
+  
+  .anti-flash.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* Smooth loading transitions */
+  .smooth-transition {
+    transition: all 200ms ease-in-out;
+  }
+  
+  /* Force hardware acceleration for smoother animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform;
+  }
+  
+  /* Reset will-change when not animating to save resources */
+  .gpu-accelerated.idle {
+    will-change: auto;
+  }
+  
+  /* Prevent content shift during loading */
+  .no-layout-shift {
+    contain: layout style;
+  }
+  
+  /* Hide scrollbars during transitions to prevent flash */
+  .hide-scrollbar-during-transition {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .hide-scrollbar-during-transition::-webkit-scrollbar {
+    display: none;
+  }
+}

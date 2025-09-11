@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import NextImage from 'next/image';
 import * as faceapi from '@vladmandic/face-api';
+import { useFaceAPIOptimized } from '@/lib/face-api-optimizer';
+import { PerformanceBenchmark } from '@/lib/performance-benchmark';
 import { Button } from '@/ui/button';
 import { Alert, AlertDescription } from '@/ui/alert';
 import { Card, CardContent } from '@/ui/card';
@@ -36,6 +38,7 @@ type RegistrationStatus = 'idle' | 'capturing' | 'processing' | 'success' | 'err
 type CaptureMode = 'camera' | 'upload';
 
 export default function RegisterFaceClient() {
+  const { loadModels, getBestDetectionOptions } = useFaceAPIOptimized();
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -48,7 +51,7 @@ export default function RegisterFaceClient() {
   const { user, loading } = useAuth();
   const { appUser } = useUser();
   
-  const { control, handleSubmit, formState: { errors }, reset, watch } = useForm<FormData>();
+  const { control, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
 
   // Check admin permission
   useEffect(() => {
@@ -63,25 +66,23 @@ export default function RegisterFaceClient() {
     }
   }, [user, appUser, loading]);
   
-  // Load face-api.js models
+  // Load face-api.js models with optimized loader
   useEffect(() => {
-    const loadModels = async () => {
+    const initializeModels = async () => {
       try {
-        const MODEL_URL = '/models';
-        
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        console.log('🚀 Starting optimized model loading for registration...');
+        await loadModels();
         
         setIsModelLoaded(true);
+        console.log('✅ Models loaded successfully for registration');
       } catch (error) {
-        console.error('Failed to load models:', error);
+        console.error('❌ Failed to load models for registration:', error);
         setErrorMessage('Gagal memuat model deteksi wajah. Silakan muat ulang halaman.');
       }
     };
     
-    loadModels();
-  }, []);
+    initializeModels();
+  }, [loadModels]);
 
   // Convert base64 image to image element for face-api processing
   const base64ToImage = (base64: string): Promise<HTMLImageElement> => {
@@ -93,19 +94,26 @@ export default function RegisterFaceClient() {
     });
   };
 
-  // Extract face descriptor from base64 image using face-api.js
+  // Extract face descriptor from base64 image using optimized face-api.js
   const extractFaceDescriptor = async (base64Image: string): Promise<Float32Array | null> => {
+    const endMeasurement = PerformanceBenchmark.start('face-descriptor-extraction');
+    
     try {
       const img = await base64ToImage(base64Image);
       
+      // Use optimized detection options
       const detection = await faceapi
-        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(img, getBestDetectionOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
+      
+      const duration = endMeasurement();
+      console.log(`⚡ Face descriptor extracted in ${duration.toFixed(2)}ms`);
       
       return detection ? detection.descriptor : null;
     } catch (error) {
       console.error('Error extracting face descriptor:', error);
+      endMeasurement(); // Complete measurement even on error
       return null;
     }
   };
@@ -163,6 +171,11 @@ export default function RegisterFaceClient() {
   };
 
   // Handle registration form submission
+  const onSubmit = async () => {
+    if (capturedImages.length === 0) {
+      setErrorMessage('Tidak ada gambar untuk diproses.');
+      return;
+    }
 
     if (!selectedUser) {
       setErrorMessage('Silakan pilih pengguna terlebih dahulu.');

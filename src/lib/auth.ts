@@ -18,7 +18,7 @@ export async function getUserBySupabaseId(supabaseId: string): Promise<AppUser |
   return user
 }
 
-export async function createOrUpdateUser(supabaseUser: User, userData?: { name?: string, role?: Role }): Promise<AppUser> {
+export async function createOrUpdateUser(supabaseUser: Pick<User, 'id' | 'email' | 'user_metadata'>, userData?: { name?: string, role?: Role }): Promise<AppUser> {
   const existingUser = await getUserBySupabaseId(supabaseUser.id)
   
   if (existingUser) {

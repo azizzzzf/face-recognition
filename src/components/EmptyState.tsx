@@ -6,17 +6,13 @@ import {
   Plus,
   Inbox,
   Users,
-  FileX,
   AlertCircle,
   RefreshCcw,
-  Upload,
-  Database,
   Zap,
   Settings,
   HelpCircle
 } from "lucide-react";
 import { Button } from "@/ui/button";
-import { Card, CardContent } from "@/ui/card";
 import { cn } from "@/lib/utils";
 
 export type EmptyStateVariant = 

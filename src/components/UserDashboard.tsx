@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { Badge } from '@/ui/badge';
@@ -47,7 +47,7 @@ interface UserDashboardProps {
   };
 }
 
-export function UserDashboard({ appUser }: UserDashboardProps) {
+export const UserDashboard = memo<Omit<UserDashboardProps, 'appUser'>>(({}) => {
   const [faceStatus, setFaceStatus] = useState<FaceRegistrationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -159,7 +159,7 @@ export function UserDashboard({ appUser }: UserDashboardProps) {
                 <AlertDescription className="text-amber-800">
                   <strong>Cara registrasi wajah:</strong><br />
                   Hubungi administrator untuk melakukan registrasi wajah Anda ke sistem. 
-                  Administrator dapat mengakses menu "Daftar Wajah" dan memilih akun Anda untuk proses registrasi.
+                  Administrator dapat mengakses menu &quot;Daftar Wajah&quot; dan memilih akun Anda untuk proses registrasi.
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -378,4 +378,6 @@ export function UserDashboard({ appUser }: UserDashboardProps) {
       </section>
     </main>
   );
-}
+})
+
+UserDashboard.displayName = 'UserDashboard'

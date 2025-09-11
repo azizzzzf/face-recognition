@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { Badge } from '@/ui/badge';
 import { Button } from '@/ui/button';
-import { Alert, AlertDescription } from '@/ui/alert';
 import { 
   UserPlus, 
   CheckCircle, 
@@ -14,8 +13,7 @@ import {
   ArrowRight,
   Calendar,
   Activity,
-  Shield,
-  AlertCircle
+  Shield
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -56,7 +54,7 @@ interface AdminDashboardProps {
   };
 }
 
-export function AdminDashboard({ appUser }: AdminDashboardProps) {
+export const AdminDashboard = memo<AdminDashboardProps>(({ appUser }) => {
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     todayAttendance: 0,
@@ -431,4 +429,6 @@ export function AdminDashboard({ appUser }: AdminDashboardProps) {
       </section>
     </main>
   );
-}
+})
+
+AdminDashboard.displayName = 'AdminDashboard'

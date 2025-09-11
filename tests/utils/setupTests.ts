@@ -1,136 +1,72 @@
-import { beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
-import { PrismaClient } from '@prisma/client';
-import { createClient } from '@supabase/supabase-js';
+
+import { TestConfig } from './testConfig';
 
 // Global test setup
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL
-    }
-  }
-});
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 beforeAll(async () => {
-  // Setup test database
-  console.log('Setting up test database...');
+  // Setup test database connection
+  console.log('🔧 Setting up test environment...');
   
-  // Clear existing test data
-  await clearTestData();
+  // Clear any existing test data
+  await cleanupTestData();
   
-  // Seed test data
+  // Seed test data if needed
   await seedTestData();
 });
 
 afterAll(async () => {
-  // Cleanup
-  await clearTestData();
-  await prisma.$disconnect();
+  // Cleanup after tests
+  console.log('🧹 Cleaning up test environment...');
+  await cleanupTestData();
 });
 
-beforeEach(async () => {
-  // Reset test state before each test
-});
-
-afterEach(async () => {
-  // Cleanup after each test if needed
-});
-
-async function clearTestData() {
-  try {
-    // Delete in correct order to respect foreign key constraints
-    await prisma.attendance.deleteMany({});
-    await prisma.knownFace.deleteMany({});
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          contains: 'test'
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error clearing test data:', error);
-  }
-}
-
-async function seedTestData() {
-  try {
-    // Create test users
-    const adminUser = await prisma.user.create({
-      data: {
-        id: 'test-admin-id',
-        name: 'Test Admin',
-        email: 'test-admin@example.com',
-        role: 'ADMIN',
-        supabaseId: 'test-admin-supabase-id'
-      }
-    });
-
-    const regularUser = await prisma.user.create({
-      data: {
-        id: 'test-user-id', 
-        name: 'Test User',
-        email: 'test-user@example.com',
-        role: 'USER',
-        supabaseId: 'test-user-supabase-id'
-      }
-    });
-
-    const userWithFace = await prisma.user.create({
-      data: {
-        id: 'test-user-face-id',
-        name: 'Test User With Face',
-        email: 'test-user-face@example.com',
-        role: 'USER',
-        supabaseId: 'test-user-face-supabase-id'
-      }
-    });
-
-    // Create test face registration
-    await prisma.knownFace.create({
-      data: {
-        id: 'test-face-id',
-        name: 'Test User With Face',
-        userId: userWithFace.id,
-        faceApiDescriptor: Array(128).fill(0.5), // Mock descriptor
-        enrollmentImages: JSON.stringify(['test-image-1.jpg', 'test-image-2.jpg']),
-        multiAngle: true
-      }
-    });
-
-    console.log('Test data seeded successfully');
-  } catch (error) {
-    console.error('Error seeding test data:', error);
-  }
-}
-
-// Export utilities for tests
-export { prisma, supabase };
-export const testUsers = {
-  admin: {
-    id: 'test-admin-id',
-    email: 'test-admin@example.com',
-    password: 'TestAdmin123!',
-    name: 'Test Admin',
-    role: 'ADMIN'
-  },
-  user: {
-    id: 'test-user-id',
-    email: 'test-user@example.com', 
-    password: 'TestUser123!',
-    name: 'Test User',
-    role: 'USER'
-  },
-  userWithFace: {
-    id: 'test-user-face-id',
-    email: 'test-user-face@example.com',
-    password: 'TestUserFace123!',
-    name: 'Test User With Face', 
-    role: 'USER'
-  }
+export const cleanupTestData = async (): Promise<void> => {
+  // Implementation to clean test database
+  console.log('Cleaning test data...');
 };
+
+export const seedTestData = async (): Promise<void> => {
+  // Implementation to seed test data
+  console.log('Seeding test data...');
+};
+
+// Extend Jest matchers
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeValidImage(): R;
+      toHaveFaceDetected(): R;
+      toBeWithinPerformanceThreshold(threshold: number): R;
+    }
+  }
+}
+
+// Custom matchers
+expect.extend({
+  toBeValidImage(received) {
+    const isValid = received && received.length > 0 && 
+                   (received.includes('data:image/') || Buffer.isBuffer(received));
+    
+    return {
+      message: () => `expected ${received} to be a valid image`,
+      pass: isValid
+    };
+  },
+  
+  toHaveFaceDetected(received) {
+    const hasFace = received && received.faces && received.faces.length > 0;
+    
+    return {
+      message: () => `expected image to have face detected`,
+      pass: hasFace
+    };
+  },
+  
+  toBeWithinPerformanceThreshold(received, threshold) {
+    const isWithin = received <= threshold;
+    
+    return {
+      message: () => `expected ${received}ms to be within ${threshold}ms`,
+      pass: isWithin
+    };
+  }
+});

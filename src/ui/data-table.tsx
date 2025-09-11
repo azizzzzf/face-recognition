@@ -5,8 +5,7 @@ import {
   ChevronDown, 
   ChevronUp, 
   ChevronsUpDown, 
-  Search,
-  ArrowUpDown
+  Search
 } from "lucide-react";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
@@ -15,7 +14,7 @@ import { cn } from "@/lib/utils";
 export interface DataTableColumn<T> {
   key: keyof T | string;
   header: string;
-  cell?: (value: any, row: T, index: number) => React.ReactNode;
+  cell?: (value: unknown, row: T, index: number) => React.ReactNode;
   sortable?: boolean;
   searchable?: boolean;
   className?: string;
@@ -50,7 +49,7 @@ interface SortState {
   direction: SortDirection;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   searchable = true,

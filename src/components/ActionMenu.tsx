@@ -110,7 +110,7 @@ export function ActionMenu({
     }
     
     // Add groups
-    groups.forEach((group, index) => {
+    groups.forEach((group) => {
       if (structure.length > 0 && group.items.length > 0) {
         structure.push({ type: "separator" });
       }
@@ -216,21 +216,21 @@ export function ActionMenu({
     );
   };
 
-  const renderStructureItem = (structureItem: any, index: number) => {
-    if (structureItem.type === "separator") {
+  const renderStructureItem = (structureItem: ActionMenuItem | { type: "separator" } | { type: "group"; label: string; items: ActionMenuItem[] }, index: number) => {
+    if ('type' in structureItem && structureItem.type === "separator") {
       return <DropdownMenuSeparator key={`separator-${index}`} />;
     }
     
-    if (structureItem.type === "group") {
+    if ('type' in structureItem && structureItem.type === "group") {
       return (
         <DropdownMenuGroup key={`group-${index}`}>
           <DropdownMenuLabel>{structureItem.label}</DropdownMenuLabel>
-          {structureItem.items.map(renderMenuItem)}
+          {structureItem.items?.map(renderMenuItem)}
         </DropdownMenuGroup>
       );
     }
     
-    return renderMenuItem(structureItem);
+    return renderMenuItem(structureItem as ActionMenuItem);
   };
 
   if (menuStructure.length === 0) {
