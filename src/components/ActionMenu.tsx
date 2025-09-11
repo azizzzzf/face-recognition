@@ -216,21 +216,21 @@ export function ActionMenu({
     );
   };
 
-  const renderStructureItem = (structureItem: { type: string; label?: string; items?: ActionItem[] }, index: number) => {
-    if (structureItem.type === "separator") {
+  const renderStructureItem = (structureItem: ActionMenuItem | { type: "separator" } | { type: "group"; label: string; items: ActionMenuItem[] }, index: number) => {
+    if ('type' in structureItem && structureItem.type === "separator") {
       return <DropdownMenuSeparator key={`separator-${index}`} />;
     }
     
-    if (structureItem.type === "group") {
+    if ('type' in structureItem && structureItem.type === "group") {
       return (
         <DropdownMenuGroup key={`group-${index}`}>
           <DropdownMenuLabel>{structureItem.label}</DropdownMenuLabel>
-          {structureItem.items.map(renderMenuItem)}
+          {structureItem.items?.map(renderMenuItem)}
         </DropdownMenuGroup>
       );
     }
     
-    return renderMenuItem(structureItem);
+    return renderMenuItem(structureItem as ActionMenuItem);
   };
 
   if (menuStructure.length === 0) {

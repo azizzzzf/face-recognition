@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
 import { Badge } from '@/ui/badge';
@@ -47,7 +47,7 @@ interface UserDashboardProps {
   };
 }
 
-export function UserDashboard({}: Omit<UserDashboardProps, 'appUser'>) {
+export const UserDashboard = memo<Omit<UserDashboardProps, 'appUser'>>(({}) => {
   const [faceStatus, setFaceStatus] = useState<FaceRegistrationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -378,4 +378,6 @@ export function UserDashboard({}: Omit<UserDashboardProps, 'appUser'>) {
       </section>
     </main>
   );
-}
+})
+
+UserDashboard.displayName = 'UserDashboard'

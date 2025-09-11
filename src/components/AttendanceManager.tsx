@@ -55,7 +55,7 @@ interface AttendanceManagerProps {
   userId?: string;
 }
 
-export default function AttendanceManager({ userRole }: Omit<AttendanceManagerProps, 'userId'>) {
+export default function AttendanceManager({ userRole }: Pick<AttendanceManagerProps, 'userRole'>) {
   // State management
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);

@@ -107,9 +107,7 @@ export class TestHelpers {
     return await prisma.attendance.create({
       data: {
         faceId: faceId || 'test-face-id',
-        similarity: 0.85,
-        latencyMs: 150,
-        model: 'face-api'
+        userId: userId
       }
     });
   }

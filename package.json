@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -44,6 +44,9 @@
     "test:reports": "npm run test:coverage && npm run test:e2e:report && node tests/scripts/generate-reports.js",
     "test:clean": "rm -rf tests/reports/* && rm -rf test-results/*",
     "test:setup": "node tests/scripts/setup-test-environment.js",
+    
+    "perf": "node scripts/performance-test.js",
+    "perf:benchmark": "npm run build && npm run start & sleep 10 && npm run perf && pkill -f 'next start'",
     
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

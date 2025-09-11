@@ -8,17 +8,18 @@ module.exports = {
     '**/*.(test|spec).+(ts|tsx|js)'
   ],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      useESM: true
+    }],
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/tests/(.*)$': '<rootDir>/tests/$1',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill)/)'
+  ],
   extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  },
   testTimeout: 30000,
   verbose: true,
   collectCoverageFrom: [
@@ -26,6 +27,6 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
   ],
-  coverageDirectory: 'coverage',
+  coverageDirectory: 'tests/reports/coverage',
   coverageReporters: ['text', 'lcov', 'html'],
 };

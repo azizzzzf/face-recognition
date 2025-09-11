@@ -37,8 +37,14 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
   const { signOut } = useAuth();
   const { appUser } = useUser();
 
-  // Load pinned state from localStorage
+  // Load pinned state from localStorage only if user is authenticated
   useEffect(() => {
+    // Prevent loading state if user is not authenticated to avoid flash content
+    if (!appUser) {
+      setIsPinned(false);
+      return;
+    }
+
     const savedPinnedState = localStorage.getItem('sidebar-pinned');
     if (savedPinnedState) {
       const pinnedState = JSON.parse(savedPinnedState);
@@ -48,7 +54,7 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
         onExpandedChange?.(true);
       }
     }
-  }, [onExpandedChange, isMobile]);
+  }, [onExpandedChange, isMobile, appUser]);
 
   // Check face registration status for USER role
   useEffect(() => {
@@ -140,6 +146,11 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
     { name: "Data Pengguna", href: "/users", icon: Users, roles: ['ADMIN'] },
   ];
 
+  // Don't render sidebar if no authenticated user to prevent flash content
+  if (!appUser) {
+    return null;
+  }
+
   return (
     <>
       {/* Mobile Menu Toggle */}
@@ -155,14 +166,9 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-50 transition-all duration-[350ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] shadow-lg will-change-transform ${
+        className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-50 transition-all duration-[350ms] ease-[cubic-bezier(0.4,0.0,0.2,1)] shadow-lg gpu-accelerated no-layout-shift ${
           expanded ? 'w-64 shadow-xl border-gray-300' : 'w-16 shadow-lg border-gray-200'
         }`}
-        style={{
-          // Hardware acceleration for sidebar animation
-          backfaceVisibility: 'hidden',
-          transform: 'translateZ(0)', // Force hardware acceleration
-        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -294,7 +300,16 @@ export function Sidebar({ isExpanded = false, onExpandedChange, isMobile = false
               
               {/* Logout Button */}
               <button
-                onClick={() => signOut()}
+                onClick={async () => {
+                  // Clear sidebar state immediately to prevent flash content
+                  setIsPinned(false);
+                  setInternalExpanded(false);
+                  setMobileMenuOpen(false);
+                  localStorage.removeItem('sidebar-pinned');
+                  
+                  await signOut();
+                  // Redirect will be handled automatically by AuthGuard
+                }}
                 className="flex items-center gap-3 w-full px-2 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                 title={!expanded ? "Sign Out" : undefined}
               >

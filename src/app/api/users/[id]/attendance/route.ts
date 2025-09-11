@@ -47,17 +47,18 @@ export async function GET(
 
     // Date range filter
     if (startDate || endDate) {
-      whereConditions.createdAt = {};
+      const createdAtFilter: { gte?: Date; lte?: Date } = {};
       if (startDate) {
         const startDateTime = new Date(startDate);
         startDateTime.setHours(0, 0, 0, 0);
-        whereConditions.createdAt.gte = startDateTime;
+        createdAtFilter.gte = startDateTime;
       }
       if (endDate) {
         const endDateTime = new Date(endDate);
         endDateTime.setHours(23, 59, 59, 999);
-        whereConditions.createdAt.lte = endDateTime;
+        createdAtFilter.lte = endDateTime;
       }
+      whereConditions.createdAt = createdAtFilter;
     }
 
     // Model filter

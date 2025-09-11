@@ -2,10 +2,11 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import * as faceapi from '@vladmandic/face-api';
+import { useFaceAPI } from '@/lib/faceapi-loader';
 import { Button } from '@/ui/button';
 import { Alert, AlertDescription } from '@/ui/alert';
 import { Card, CardContent } from '@/ui/card';
-import { Camera, Check, AlertCircle, CheckCircle2, Users } from 'lucide-react';
+import { Camera, Check, AlertCircle, CheckCircle, Users } from 'lucide-react';
 
 interface RecognitionResult {
   success: boolean;
@@ -28,6 +29,8 @@ export default function RecognizeFaceClient() {
   const streamRef = useRef<MediaStream | null>(null);
   const detectionIntervalRef = useRef<number | null>(null);
   
+  const { loadModels } = useFaceAPI();
+  
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [recognitionStatus, setRecognitionStatus] = useState<RecognitionStatus>('idle');
@@ -43,32 +46,32 @@ export default function RecognizeFaceClient() {
   // Constant untuk real-time detection
   const REALTIME_DETECTION = true;
 
-  // Memuat model face-api.js
+  // Optimized model loading with progressive loading
   useEffect(() => {
-    const loadModels = async () => {
+    const initializeModels = async () => {
       try {
-        const MODEL_URL = '/models';
-        
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+        console.log('🚀 Starting optimized model loading...');
+        await loadModels();
         
         setIsModelLoaded(true);
+        console.log('✅ Models loaded successfully');
         // Auto start camera when models are loaded
         startCamera();
       } catch (error) {
-        console.error('Gagal memuat model:', error);
+        console.error('❌ Failed to load models:', error);
         setErrorMessage('Gagal memuat model deteksi wajah. Silakan muat ulang halaman.');
       }
     };
     
-    loadModels();
+    initializeModels();
+    
+    // Capture refs at effect time for stable cleanup
+    const currentVideo = videoRef.current;
     
     // Cleanup saat komponen di-unmount
     return () => {
-      const video = videoRef.current;
-      if (video && video.srcObject) {
-        const stream = video.srcObject as MediaStream;
+      if (currentVideo && currentVideo.srcObject) {
+        const stream = currentVideo.srcObject as MediaStream;
         const tracks = stream.getTracks();
         tracks.forEach(track => track.stop());
         setIsCameraActive(false);
@@ -79,7 +82,8 @@ export default function RecognizeFaceClient() {
         window.clearInterval(detectionIntervalRef.current);
       }
     };
-  }, [startCamera]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Mengaktifkan kamera
   const startCamera = useCallback(async () => {
@@ -112,10 +116,11 @@ export default function RecognizeFaceClient() {
       setErrorMessage('Tidak dapat mengakses kamera. Pastikan kamera terhubung dan izin diberikan.');
       setIsCameraActive(false);
     }
-  }, [setupRealTimeDetection]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   // Setup deteksi real-time untuk landmark wajah
-  const setupRealTimeDetection = () => {
+  const setupRealTimeDetection = useCallback(() => {
     if (!REALTIME_DETECTION) return;
     
     // Clear previous interval if exists
@@ -182,7 +187,7 @@ export default function RecognizeFaceClient() {
         console.debug('Real-time detection error:', error);
       }
     }, 100); // 10 FPS
-  };
+  }, [isModelLoaded, recognitionStatus, REALTIME_DETECTION]);
 
   // Deteksi wajah dan dapatkan descriptor
   const detectFace = async (): Promise<{ descriptor: Float32Array, latencyMs: number } | null> => {
@@ -643,7 +648,7 @@ export default function RecognizeFaceClient() {
                                 disabled={!isModelLoaded || recognitionStatus === 'processing'}
                                 className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                               >
-                                <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
+                                <CheckCircle className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
                                 <span>
                                   {recognitionStatus === 'processing' ? 'Memproses...' : 'Mulai Pengenalan'}
                                 </span>
@@ -757,7 +762,7 @@ export default function RecognizeFaceClient() {
                 {recognitionResult?.success ? (
                   <>
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <CheckCircle2 className="w-6 h-6 text-green-600" />
+                      <CheckCircle className="w-6 h-6 text-green-600" />
                     </div>
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">Pengenalan Berhasil!</h2>
                     <p className="text-sm text-gray-600">Selamat datang, {recognitionResult.match?.name}</p>
@@ -783,7 +788,7 @@ export default function RecognizeFaceClient() {
                   onClick={handleReset}
                   className="w-full"
                 >
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  <CheckCircle className="w-4 h-4 mr-2" />
                   Coba Lagi
                 </Button>
                 

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
+import { FaceRecognitionLoader } from "./LoadingSpinner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
@@ -14,9 +16,18 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   const pathname = usePathname();
+  const { loading, user } = useAuth();
   
   // Check if current path is auth-related
   const isAuthPage = pathname?.startsWith('/auth/') || false;
+  
+  // Reset sidebar state when user changes (prevents state persistence)
+  useEffect(() => {
+    if (!user) {
+      setIsSidebarExpanded(false);
+      setIsInitialLoad(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -36,6 +47,11 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       clearTimeout(timer);
     };
   }, []);
+
+  // Show full-screen loading during initial authentication check
+  if (loading && !isAuthPage) {
+    return <FaceRecognitionLoader />;
+  }
 
   // If it's an auth page, render without sidebar
   if (isAuthPage) {
