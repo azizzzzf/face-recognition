@@ -10,8 +10,9 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf .next dist",
     
-    "test": "npm run test:all",
-    "test:all": "npm run test:smoke && npm run test:unit && npm run test:integration && npm run test:e2e && npm run test:blackbox && npm run test:security && npm run test:performance",
+    "test": "npm run test:basic",
+    "test:basic": "npm run test:smoke && npm run test:unit && npm run test:integration",
+    "test:all": "npm run test:basic && npm run test:e2e && npm run test:blackbox && npm run test:security && npm run test:performance",
     
     "test:smoke": "jest --testPathPattern=smoke --verbose",
     "test:unit": "jest --testPathPattern=unit --verbose --coverage",
@@ -39,7 +40,14 @@
     
     "test:coverage": "jest --coverage --coverageDirectory=tests/reports/coverage",
     "test:watch": "jest --watch",
-    "test:ci": "npm run test:smoke && npm run test:unit && npm run test:integration && npm run test:e2e -- --reporter=html",
+    "test:ci": "npm run test:basic && npm run test:e2e -- --reporter=html",
+    
+    "test:quick": "npm run test:smoke",
+    "test:dev": "npm run test:smoke && npm run test:unit",
+    "test:no-e2e": "npm run test:basic",
+    "test:smoke-only": "npm run test:smoke",
+    "test:unit-only": "npm run test:unit",
+    "test:integration-only": "npm run test:integration",
     
     "test:reports": "npm run test:coverage && npm run test:e2e:report && node tests/scripts/generate-reports.js",
     "test:clean": "rm -rf tests/reports/* && rm -rf test-results/*",

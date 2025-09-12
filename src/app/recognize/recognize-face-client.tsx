@@ -1,12 +1,12 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import * as faceapi from '@vladmandic/face-api';
-import { useFaceAPI } from '@/lib/faceapi-loader';
 import { Button } from '@/ui/button';
 import { Alert, AlertDescription } from '@/ui/alert';
 import { Card, CardContent } from '@/ui/card';
-import { Camera, Check, AlertCircle, CheckCircle, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
+import { Camera, Upload, Check, AlertCircle, CheckCircle2, Users } from 'lucide-react';
 
 interface RecognitionResult {
   success: boolean;
@@ -21,6 +21,7 @@ interface RecognitionResult {
 }
 
 type RecognitionStatus = 'idle' | 'processing' | 'success' | 'error';
+type CaptureMode = 'camera' | 'upload';
 
 
 export default function RecognizeFaceClient() {
@@ -29,8 +30,6 @@ export default function RecognizeFaceClient() {
   const streamRef = useRef<MediaStream | null>(null);
   const detectionIntervalRef = useRef<number | null>(null);
   
-  const { loadModels } = useFaceAPI();
-  
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [recognitionStatus, setRecognitionStatus] = useState<RecognitionStatus>('idle');
@@ -38,6 +37,7 @@ export default function RecognizeFaceClient() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [recognitionResult, setRecognitionResult] = useState<RecognitionResult | null>(null);
   const [showRecognitionResult, setShowRecognitionResult] = useState(false);
+  const [captureMode, setCaptureMode] = useState<CaptureMode>('camera');
   const [performanceMetrics, setPerformanceMetrics] = useState<{
     detectionTime: number;
     totalTime: number;
@@ -46,32 +46,31 @@ export default function RecognizeFaceClient() {
   // Constant untuk real-time detection
   const REALTIME_DETECTION = true;
 
-  // Optimized model loading with progressive loading
+  // Memuat model face-api.js
   useEffect(() => {
-    const initializeModels = async () => {
+    const loadModels = async () => {
       try {
-        console.log('🚀 Starting optimized model loading...');
-        await loadModels();
+        const MODEL_URL = '/models';
+        
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
         
         setIsModelLoaded(true);
-        console.log('✅ Models loaded successfully');
         // Auto start camera when models are loaded
         startCamera();
       } catch (error) {
-        console.error('❌ Failed to load models:', error);
+        console.error('Gagal memuat model:', error);
         setErrorMessage('Gagal memuat model deteksi wajah. Silakan muat ulang halaman.');
       }
     };
     
-    initializeModels();
-    
-    // Capture refs at effect time for stable cleanup
-    const currentVideo = videoRef.current;
+    loadModels();
     
     // Cleanup saat komponen di-unmount
     return () => {
-      if (currentVideo && currentVideo.srcObject) {
-        const stream = currentVideo.srcObject as MediaStream;
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
         const tracks = stream.getTracks();
         tracks.forEach(track => track.stop());
         setIsCameraActive(false);
@@ -82,11 +81,10 @@ export default function RecognizeFaceClient() {
         window.clearInterval(detectionIntervalRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Mengaktifkan kamera
-  const startCamera = useCallback(async () => {
+  const startCamera = async () => {
     try {
       // Gunakan resolusi persegi untuk menghindari distorsi
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -116,11 +114,10 @@ export default function RecognizeFaceClient() {
       setErrorMessage('Tidak dapat mengakses kamera. Pastikan kamera terhubung dan izin diberikan.');
       setIsCameraActive(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
   
   // Setup deteksi real-time untuk landmark wajah
-  const setupRealTimeDetection = useCallback(() => {
+  const setupRealTimeDetection = () => {
     if (!REALTIME_DETECTION) return;
     
     // Clear previous interval if exists
@@ -187,7 +184,7 @@ export default function RecognizeFaceClient() {
         console.debug('Real-time detection error:', error);
       }
     }, 100); // 10 FPS
-  }, [isModelLoaded, recognitionStatus, REALTIME_DETECTION]);
+  };
 
   // Deteksi wajah dan dapatkan descriptor
   const detectFace = async (): Promise<{ descriptor: Float32Array, latencyMs: number } | null> => {
@@ -360,23 +357,6 @@ export default function RecognizeFaceClient() {
     }
   };
 
-  // Commented out unused function to avoid ESLint error
-  // const captureImageForArcFace = async (): Promise<string | null> => {
-  //   if (!videoRef.current || !canvasRef.current) return null;
-  //   
-  //   const canvas = canvasRef.current;
-  //   const video = videoRef.current;
-  //   const context = canvas.getContext('2d');
-  //   
-  //   if (!context) return null;
-  //   
-  //   canvas.width = video.videoWidth;
-  //   canvas.height = video.videoHeight;
-  //   context.drawImage(video, 0, 0);
-  //   
-  //   return canvas.toDataURL('image/jpeg', 0.8);
-  // };
-
   // Proses pengenalan wajah
   const processRecognition = async () => {
     setRecognitionStatus('processing');
@@ -393,19 +373,8 @@ export default function RecognizeFaceClient() {
         throw new Error('Gagal mendeteksi wajah');
       }
       
-      // Konversi Float32Array ke array biasa untuk JSON dengan proper validation
-      const descriptorArray = Array.from(result.descriptor).map(val => {
-        const num = typeof val === 'number' ? val : Number(val);
-        return isNaN(num) ? 0 : num; // Handle any potential NaN values
-      });
-      
-      console.log('Descriptor conversion completed:', {
-        originalType: result.descriptor.constructor.name,
-        originalLength: result.descriptor.length,
-        convertedLength: descriptorArray.length,
-        sample: descriptorArray.slice(0, 5),
-        allNumbers: descriptorArray.every(val => typeof val === 'number' && !isNaN(val))
-      });
+      // Konversi Float32Array ke array biasa untuk JSON
+      const descriptorArray = Array.from(result.descriptor);
       
       // Capture image for ArcFace recognition (currently unused)
       // const currentImage = await captureImageForArcFace();
@@ -419,7 +388,6 @@ export default function RecognizeFaceClient() {
       let faceApiResult = null;
       
       try {
-        console.log('Sending recognition request to API...');
         // Try Face-API.js recognition
         const response = await fetch('/api/recognize-face', {
           method: 'POST',
@@ -429,22 +397,11 @@ export default function RecognizeFaceClient() {
           body: payload,
         });
         
-        console.log(`API Response status: ${response.status} ${response.statusText}`);
-        
         if (response.ok) {
           faceApiResult = await response.json();
-          console.log('Face-API.js recognition successful:', faceApiResult);
-        } else {
-          // Get error details from response
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          console.warn('Face-API.js recognition failed:', {
-            status: response.status,
-            statusText: response.statusText,
-            error: errorData
-          });
         }
       } catch (error) {
-        console.error('Face-API.js recognition network error:', error);
+        console.warn('Face-API.js recognition failed:', error);
       }
       
       // Use Face-API.js result as the final result
@@ -465,22 +422,11 @@ export default function RecognizeFaceClient() {
         setShowRecognitionResult(true);
       } else {
         setRecognitionStatus('error');
-        const errorMsg = finalResult?.error || 'Wajah tidak dikenali oleh sistem';
         setRecognitionResult({
           success: false,
-          error: errorMsg
+          error: 'Wajah tidak dikenali oleh sistem'
         });
-        
-        // Provide more helpful error messages based on the error type
-        if (errorMsg.includes('tidak terdaftar')) {
-          setErrorMessage('Wajah tidak terdaftar dalam sistem. Pastikan wajah Anda sudah didaftarkan terlebih dahulu.');
-        } else if (errorMsg.includes('terlalu rendah')) {
-          setErrorMessage('Kecocokan wajah terlalu rendah. Silakan posisikan wajah dengan jelas, pastikan pencahayaan cukup, dan coba lagi.');
-        } else if (errorMsg.includes('service not available')) {
-          setErrorMessage('Layanan pengenalan wajah sedang tidak tersedia. Silakan hubungi administrator.');
-        } else {
-          setErrorMessage(errorMsg);
-        }
+        setErrorMessage('Wajah tidak terdaftar dalam sistem atau tidak dapat dikenali');
       }
     } catch (error: unknown) {
       console.error('Kesalahan pengenalan:', error);
@@ -541,7 +487,8 @@ export default function RecognizeFaceClient() {
             <div className="flex-[7] bg-white rounded-xl md:rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300">
               <div className="bg-gray-900 h-full flex flex-col min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh] lg:min-h-[65vh] xl:min-h-[calc(100vh-8rem)]">
                 <div className="flex-1 flex flex-col h-full">
-                  <div className="flex-1 flex flex-col h-full">
+                  <Tabs defaultValue="camera" value={captureMode} onValueChange={(value) => setCaptureMode(value as CaptureMode)} className="flex-1 flex flex-col h-full">
+                    <TabsContent value="camera" className="flex-1 m-0 h-full">
                       <div className="w-full h-full flex flex-col relative">
                       {/* Enhanced Error Display */}
                       {!isCameraActive && !isModelLoaded && (
@@ -648,7 +595,7 @@ export default function RecognizeFaceClient() {
                                 disabled={!isModelLoaded || recognitionStatus === 'processing'}
                                 className="text-sm md:text-base lg:text-lg px-4 md:px-6 lg:px-8 py-2 md:py-3 lg:py-4 h-10 md:h-12 lg:h-14 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                               >
-                                <CheckCircle className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
+                                <CheckCircle2 className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 mr-2 md:mr-3" />
                                 <span>
                                   {recognitionStatus === 'processing' ? 'Memproses...' : 'Mulai Pengenalan'}
                                 </span>
@@ -666,7 +613,18 @@ export default function RecognizeFaceClient() {
                           </div>
                         </div>
                       </div>
-                  </div>
+                    </TabsContent>
+
+                    <TabsContent value="upload" className="flex-1 m-0 h-full p-3 sm:p-4 md:p-6">
+                      <div className="flex flex-col items-center justify-center h-full bg-gray-800/50 rounded-lg backdrop-blur-sm border border-gray-700/50">
+                        <div className="text-center text-white">
+                          <Upload className="h-12 w-12 mx-auto mb-4 opacity-60" />
+                          <p className="text-sm opacity-80">Upload image untuk pengenalan wajah</p>
+                          <p className="text-xs opacity-60 mt-2">Fitur akan segera tersedia</p>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
               </div>
             </div>
@@ -676,9 +634,27 @@ export default function RecognizeFaceClient() {
               <div className="p-3 sm:p-4 md:p-5 flex flex-col h-full">
                 {/* Card Header - Responsive */}
                 <div className="border-b border-gray-100 pb-2 md:pb-3 mb-3 md:mb-4">
-                  <h3 className="text-sm md:text-base xl:text-lg font-semibold text-gray-900 mb-1">Absensi</h3>
+                  <h3 className="text-sm md:text-base xl:text-lg font-semibold text-gray-900 mb-1">Kontrol Kamera</h3>
+                  <p className="text-xs md:text-sm text-gray-600">Pilih metode pengenalan wajah</p>
                 </div>
 
+                {/* Method Selection Card - Enhanced Responsive */}
+                <div className="mb-3 md:mb-4">
+                  <Tabs defaultValue="camera" value={captureMode} onValueChange={(value) => setCaptureMode(value as CaptureMode)}>
+                    <TabsList className="grid grid-cols-2 w-full h-8 md:h-10 p-1 bg-gray-100 transition-all duration-200">
+                      <TabsTrigger value="camera" className="flex-1 flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">
+                        <Camera className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden sm:inline">Camera</span>
+                        <span className="sm:hidden">Cam</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="upload" className="flex-1 flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all">
+                        <Upload className="h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden sm:inline">Upload</span>
+                        <span className="sm:hidden">Up</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
 
                 {/* Instructions Card - exact copy from register page */}
                 <div className="mb-3 md:mb-4 p-2 md:p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg md:rounded-xl transition-all duration-200">
@@ -762,7 +738,7 @@ export default function RecognizeFaceClient() {
                 {recognitionResult?.success ? (
                   <>
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
+                      <CheckCircle2 className="w-6 h-6 text-green-600" />
                     </div>
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">Pengenalan Berhasil!</h2>
                     <p className="text-sm text-gray-600">Selamat datang, {recognitionResult.match?.name}</p>
@@ -788,7 +764,7 @@ export default function RecognizeFaceClient() {
                   onClick={handleReset}
                   className="w-full"
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
                   Coba Lagi
                 </Button>
                 
