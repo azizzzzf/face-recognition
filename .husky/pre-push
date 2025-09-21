@@ -1,2 +1,2 @@
-npm run type-check
-npm run test
+#!/bin/sh
+npm run type-check && npm run test

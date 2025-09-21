@@ -1,1 +1,2 @@
+#!/bin/sh
 npm run lint || echo "Lint warnings found, but allowing commit..."
