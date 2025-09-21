@@ -11,8 +11,6 @@
 
 **A modern, secure, and efficient face recognition attendance system built with cutting-edge web technologies.**
 
-[🚀 Live Demo](#) • [📖 Documentation](#documentation) • [🐛 Report Bug](https://github.com/azizzzzf/face-recognition/issues) • [💡 Request Feature](https://github.com/azizzzzf/face-recognition/issues)
-
 </div>
 
 ---
@@ -528,3 +526,4 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 <div align="center">
   <sub>Built with ❤️ by <a href="https://github.com/azizzzzf">azizzzzf</a></sub>
 </div>
+
