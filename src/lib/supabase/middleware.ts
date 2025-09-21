@@ -1,6 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+/**
+ * Ensures the Supabase session is synchronized with the incoming Next.js request and returns the response (with any cookie updates) alongside the authenticated user.
+ *
+ * Creates a server-side Supabase client tied to the incoming request's cookies, applies any cookie changes to the outgoing NextResponse, and retrieves the current authenticated user. Uses fallback environment values for Supabase URL and anon key when those variables are not set.
+ *
+ * @param request - The incoming NextRequest whose cookies are used and may be updated to reflect Supabase session changes.
+ * @returns An object containing:
+ *   - `supabaseResponse`: the NextResponse that must be returned (it carries any cookie updates required by Supabase).
+ *   - `user`: the authenticated user object (or null if no user is authenticated).
+ *
+ * Note: The returned `supabaseResponse` must be returned as-is. If you create a redirect or a new response, pass `request.url` as the first argument to the redirect and use `supabaseResponse` as the init parameter so cookie updates are preserved.
+ */
 export async function updateSession(request: NextRequest) {
   const supabaseResponse = NextResponse.next({
     request,

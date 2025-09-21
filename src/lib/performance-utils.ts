@@ -1,7 +1,17 @@
 import React, { useCallback, useMemo, useRef } from 'react'
 
 // Utility untuk debouncing API calls
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/**
+ * Creates a debounced version of the provided callback.
+ *
+ * The returned function delays invoking `callback` until `delay` milliseconds have
+ * elapsed since the last call; each invocation resets the timer. The returned
+ * function preserves the argument types and arity of `callback`.
+ *
+ * @param callback - Function to debounce; will be called with the latest arguments after the delay
+ * @param delay - Delay in milliseconds to wait after the last call before invoking `callback`
+ * @returns A debounced version of `callback` with the same call signature
+ */
 export function useDebounce<T extends (...args: any) => any>(
   callback: T,
   delay: number
@@ -20,7 +30,16 @@ export function useDebounce<T extends (...args: any) => any>(
 }
 
 // Utility untuk throttling expensive operations
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/**
+ * Returns a throttled version of `callback` that invokes at most once per `delay` milliseconds.
+ *
+ * The returned function forwards arguments to `callback` when the previous invocation was at least
+ * `delay` ms ago. Subsequent calls within the delay window are ignored.
+ *
+ * @param callback - Function to be throttled.
+ * @param delay - Minimum interval in milliseconds between allowed invocations.
+ * @returns A throttled function with the same call signature as `callback`.
+ */
 export function useThrottle<T extends (...args: any) => any>(
   callback: T,
   delay: number
@@ -41,6 +60,22 @@ export function useThrottle<T extends (...args: any) => any>(
 const apiCache = new Map<string, { data: unknown; timestamp: number }>()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
+/**
+ * Fetches JSON from a URL with in-memory caching and returns a Promise of the parsed result.
+ *
+ * This hook-style helper returns a Promise<T> that resolves to the fetched JSON. Responses are cached in an internal
+ * in-memory cache for CACHE_DURATION milliseconds and served from the cache when a fresh entry exists.
+ *
+ * Important details:
+ * - The cache key is the request URL only; `options` are not part of the cache key. Requests made with different
+ *   options but the same URL may return the cached response.
+ * - Successful fetch responses are parsed via `response.json()` and cached as the value returned by the Promise.
+ * - Network or JSON parsing errors are not handled here and will reject the returned Promise.
+ *
+ * @param url - The resource URL to fetch and use as the cache key.
+ * @param options - Optional fetch init options passed to `fetch`.
+ * @returns A Promise that resolves to the parsed JSON result typed as `T`.
+ */
 export function useCachedFetch<T>(url: string, options?: RequestInit): Promise<T> {
   return useMemo(() => {
     const cachedEntry = apiCache.get(url)
@@ -106,7 +141,15 @@ export class PerformanceMonitor {
   }
 }
 
-// React component performance wrapper
+/**
+ * Wraps a React component to measure and report render duration.
+ *
+ * The returned component records render start and end times using PerformanceMonitor and logs a console warning if a single render exceeds ~50ms.
+ *
+ * @param Component - The React component to wrap.
+ * @param componentName - Human-readable name used in measurement labels and warning messages.
+ * @returns A component that renders `Component` and records its render time.
+ */
 export function withPerformanceMonitor<P extends object>(
   Component: React.ComponentType<P>,
   componentName: string

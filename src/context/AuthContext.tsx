@@ -20,6 +20,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+/**
+ * React context provider that manages authentication state and exposes auth actions.
+ *
+ * Provides sign-in, sign-up, sign-out, session refresh, error clearing, and current
+ * user state (both Supabase user and application-level user profile) to descendant components.
+ *
+ * Key behavior:
+ * - Tracks: Supabase user, application user (appUser), loading, error, and network online status.
+ * - Subscribes to Supabase auth state changes and updates state accordingly.
+ * - Monitors browser online/offline events and sets a user-facing network error when offline.
+ * - fetchAppUser performs a POST to /api/auth/user with a 10s timeout to load the application profile.
+ * - signIn / signUp return an object with either `{ success: true }` or `{ error: string }` with user-friendly messages.
+ * - signUp attempts to create an additional app database record via /api/auth/register (non-fatal if it fails).
+ * - signOut immediately clears local state and common client caches, calls Supabase signOut, and redirects to /auth/login.
+ *
+ * This component must wrap parts of the app that consume the AuthContext (via `useAuth()`).
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [appUser, setAppUser] = useState<AppUser | null>(null)

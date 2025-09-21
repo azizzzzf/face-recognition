@@ -77,7 +77,18 @@ function setupServiceWorker() {
   }
 }
 
-// Performance monitoring component
+/**
+ * Monitors client-side performance (Core Web Vitals and JS heap usage) and logs summarized metrics and warnings.
+ *
+ * This component runs once on the client after mount. It uses PerformanceObserver to collect
+ * Cumulative Layout Shift (CLS), Largest Contentful Paint (LCP), and First Input Delay (FID),
+ * logs a summary after a short delay, and emits console warnings when thresholds indicate poor
+ * values. If the browser exposes the `performance.memory` API, it also logs JS heap usage.
+ *
+ * The component renders its children and does not produce any visible UI.
+ *
+ * @param children - React nodes to render; passed through unchanged.
+ */
 export function PerformanceMonitor({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Monitor Core Web Vitals

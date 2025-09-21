@@ -24,6 +24,21 @@ type RecognitionStatus = 'idle' | 'processing' | 'success' | 'error';
 type CaptureMode = 'camera' | 'upload';
 
 
+/**
+ * Real-time face detection and recognition React client component.
+ *
+ * Loads face-api models, manages camera access and a mirrored video/canvas pair,
+ * runs an optional real-time detection loop to draw landmarks, and provides a
+ * manual recognition flow that captures a face descriptor, optionally pre-processes
+ * frames, and sends the descriptor to the backend (/api/recognize-face) for matching.
+ *
+ * The component exposes a complete UI for starting/stopping the camera, initiating
+ * recognition, showing progress and performance metrics, and displaying success/error
+ * results. It also handles model loading and lifecycle cleanup (stopping media tracks
+ * and clearing detection intervals) and surfaces user-facing errors via internal state.
+ *
+ * @returns JSX element rendering the camera/controls and recognition result UI.
+ */
 export default function RecognizeFaceClient() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
