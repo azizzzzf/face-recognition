@@ -7,7 +7,7 @@ class ModelLoader {
   private static instance: ModelLoader
   private modelsLoaded = false
   private loadingPromise: Promise<void> | null = null
-  private modelCache: Map<string, any> = new Map()
+  private modelCache: Map<string, Float32Array> = new Map()
 
   static getInstance(): ModelLoader {
     if (!ModelLoader.instance) {
@@ -82,11 +82,11 @@ class ModelLoader {
   }
 
   // Cache face descriptors to avoid recomputation
-  cacheDescriptor(key: string, descriptor: any): void {
+  cacheDescriptor(key: string, descriptor: Float32Array): void {
     this.modelCache.set(key, descriptor)
   }
 
-  getCachedDescriptor(key: string): any | null {
+  getCachedDescriptor(key: string): Float32Array | null {
     return this.modelCache.get(key) || null
   }
 
@@ -105,7 +105,7 @@ export const useFaceAPI = () => {
     isLoaded: () => modelLoader.isModelsLoaded(),
     getDetectionOptions: () => modelLoader.getDetectionOptions(),
     getMatchingOptions: () => modelLoader.getMatchingOptions(),
-    cacheDescriptor: (key: string, descriptor: any) => modelLoader.cacheDescriptor(key, descriptor),
+    cacheDescriptor: (key: string, descriptor: Float32Array) => modelLoader.cacheDescriptor(key, descriptor),
     getCachedDescriptor: (key: string) => modelLoader.getCachedDescriptor(key),
     clearCache: () => modelLoader.clearCache(),
   }

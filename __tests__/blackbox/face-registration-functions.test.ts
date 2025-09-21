@@ -134,7 +134,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -186,7 +186,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -240,7 +240,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -294,7 +294,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -348,7 +348,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -401,7 +401,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -455,7 +455,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -524,7 +524,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -578,7 +578,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -621,7 +621,7 @@ describe('Blackbox Testing - Face Registration Page Functions', () => {
           headers: { 'Content-Type': 'application/json' }
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok,

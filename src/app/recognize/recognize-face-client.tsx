@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import * as faceapi from '@vladmandic/face-api';
 import { Button } from '@/ui/button';
 import { Alert, AlertDescription } from '@/ui/alert';
@@ -46,45 +46,78 @@ export default function RecognizeFaceClient() {
   // Constant untuk real-time detection
   const REALTIME_DETECTION = true;
 
-  // Memuat model face-api.js
-  useEffect(() => {
-    const loadModels = async () => {
+  // Setup deteksi real-time untuk landmark wajah
+  const setupRealTimeDetection = useCallback(() => {
+    if (!REALTIME_DETECTION) return;
+
+    // Clear previous interval if exists
+    if (detectionIntervalRef.current) {
+      window.clearInterval(detectionIntervalRef.current);
+    }
+
+    // Run face detection at 10 FPS (100ms intervals)
+    detectionIntervalRef.current = window.setInterval(async () => {
+      if (!isModelLoaded || !videoRef.current || recognitionStatus === 'processing') return;
+
       try {
-        const MODEL_URL = '/models';
-        
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-        
-        setIsModelLoaded(true);
-        // Auto start camera when models are loaded
-        startCamera();
+        // Gunakan detector options yang dioptimalkan
+        const detectorOptions = new faceapi.TinyFaceDetectorOptions({
+          inputSize: 320,  // Size lebih besar untuk akurasi landmark
+          scoreThreshold: 0.55 // Threshold lebih ketat untuk akurasi lebih baik
+        });
+
+        // Deteksi wajah dan landmark saja (tanpa descriptor untuk performa)
+        const result = await faceapi.detectSingleFace(
+          videoRef.current,
+          detectorOptions
+        ).withFaceLandmarks();
+
+        if (result && canvasRef.current && videoRef.current) {
+          // Pastikan dimensi canvas sesuai dengan video
+          const displaySize = {
+            width: videoRef.current.videoWidth,
+            height: videoRef.current.videoHeight
+          };
+
+          // Pastikan canvas memiliki ukuran yang benar
+          if (canvasRef.current.width !== displaySize.width ||
+              canvasRef.current.height !== displaySize.height) {
+            faceapi.matchDimensions(canvasRef.current, displaySize);
+          }
+
+          // Resize hasil deteksi ke ukuran canvas
+          const resizedDetections = faceapi.resizeResults(result, displaySize);
+
+          // Gambar hasil deteksi
+          const ctx = canvasRef.current.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+            // Konsisten dengan tampilan non-mirror
+            ctx.save();
+
+            // Buat landmark lebih terlihat dengan warna yang kontras
+            ctx.strokeStyle = '#22c55e'; // Hijau yang lebih terlihat
+            ctx.lineWidth = 2;
+
+            // Gambar kotak deteksi dengan warna yang kontras
+            faceapi.draw.drawDetections(canvasRef.current, resizedDetections);
+
+            // Gambar landmark dengan opsi tampilan yang dioptimalkan
+            faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetections);
+
+            ctx.restore();
+          }
+        }
       } catch (error) {
-        console.error('Gagal memuat model:', error);
-        setErrorMessage('Gagal memuat model deteksi wajah. Silakan muat ulang halaman.');
+        // Hanya log error pada real-time detection
+        console.debug('Real-time detection error:', error);
       }
-    };
-    
-    loadModels();
-    
-    // Cleanup saat komponen di-unmount
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop());
-        setIsCameraActive(false);
-      }
-      
-      // Clear detection interval jika masih aktif
-      if (detectionIntervalRef.current) {
-        window.clearInterval(detectionIntervalRef.current);
-      }
-    };
-  }, []);
+    }, 100); // 10 FPS
+  }, [isModelLoaded, recognitionStatus, REALTIME_DETECTION]);
 
   // Mengaktifkan kamera
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     try {
       // Gunakan resolusi persegi untuk menghindari distorsi
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -114,77 +147,46 @@ export default function RecognizeFaceClient() {
       setErrorMessage('Tidak dapat mengakses kamera. Pastikan kamera terhubung dan izin diberikan.');
       setIsCameraActive(false);
     }
-  };
-  
-  // Setup deteksi real-time untuk landmark wajah
-  const setupRealTimeDetection = () => {
-    if (!REALTIME_DETECTION) return;
-    
-    // Clear previous interval if exists
-    if (detectionIntervalRef.current) {
-      window.clearInterval(detectionIntervalRef.current);
-    }
-    
-    // Run face detection at 10 FPS (100ms intervals)
-    detectionIntervalRef.current = window.setInterval(async () => {
-      if (!isModelLoaded || !videoRef.current || recognitionStatus === 'processing') return;
-      
+  }, [setupRealTimeDetection]);
+
+  // Memuat model face-api.js
+  useEffect(() => {
+    const currentVideo = videoRef.current;
+
+    const loadModels = async () => {
       try {
-        // Gunakan detector options yang dioptimalkan
-        const detectorOptions = new faceapi.TinyFaceDetectorOptions({ 
-          inputSize: 320,  // Size lebih besar untuk akurasi landmark
-          scoreThreshold: 0.55 // Threshold lebih ketat untuk akurasi lebih baik
-        });
-        
-        // Deteksi wajah dan landmark saja (tanpa descriptor untuk performa)
-        const result = await faceapi.detectSingleFace(
-          videoRef.current, 
-          detectorOptions
-        ).withFaceLandmarks();
-        
-        if (result && canvasRef.current && videoRef.current) {
-          // Pastikan dimensi canvas sesuai dengan video
-          const displaySize = { 
-            width: videoRef.current.videoWidth, 
-            height: videoRef.current.videoHeight 
-          };
-          
-          // Pastikan canvas memiliki ukuran yang benar
-          if (canvasRef.current.width !== displaySize.width || 
-              canvasRef.current.height !== displaySize.height) {
-            faceapi.matchDimensions(canvasRef.current, displaySize);
-          }
-          
-          // Resize hasil deteksi ke ukuran canvas
-          const resizedDetections = faceapi.resizeResults(result, displaySize);
-          
-          // Gambar hasil deteksi
-          const ctx = canvasRef.current.getContext('2d');
-          if (ctx) {
-            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            
-            // Konsisten dengan tampilan non-mirror
-            ctx.save();
-            
-            // Buat landmark lebih terlihat dengan warna yang kontras
-            ctx.strokeStyle = '#22c55e'; // Hijau yang lebih terlihat
-            ctx.lineWidth = 2;
-            
-            // Gambar kotak deteksi dengan warna yang kontras
-            faceapi.draw.drawDetections(canvasRef.current, resizedDetections);
-            
-            // Gambar landmark dengan opsi tampilan yang dioptimalkan
-            faceapi.draw.drawFaceLandmarks(canvasRef.current, resizedDetections);
-            
-            ctx.restore();
-          }
-        }
+        const MODEL_URL = '/models';
+
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+
+        setIsModelLoaded(true);
+        // Auto start camera when models are loaded
+        startCamera();
       } catch (error) {
-        // Hanya log error pada real-time detection
-        console.debug('Real-time detection error:', error);
+        console.error('Gagal memuat model:', error);
+        setErrorMessage('Gagal memuat model deteksi wajah. Silakan muat ulang halaman.');
       }
-    }, 100); // 10 FPS
-  };
+    };
+
+    loadModels();
+
+    // Cleanup saat komponen di-unmount
+    return () => {
+      if (currentVideo && currentVideo.srcObject) {
+        const stream = currentVideo.srcObject as MediaStream;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        setIsCameraActive(false);
+      }
+
+      // Clear detection interval jika masih aktif
+      if (detectionIntervalRef.current) {
+        window.clearInterval(detectionIntervalRef.current);
+      }
+    };
+  }, [startCamera]);
 
   // Deteksi wajah dan dapatkan descriptor
   const detectFace = async (): Promise<{ descriptor: Float32Array, latencyMs: number } | null> => {

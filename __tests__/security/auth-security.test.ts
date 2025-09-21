@@ -129,7 +129,7 @@ describe('Security Testing - Authentication & Authorization', () => {
           await page.type('[name="password"]', payload);
           
           await page.click('[type="submit"]');
-          await page.waitForTimeout(2000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
           // Check for successful login (vulnerability)
           const currentUrl = page.url();
@@ -210,7 +210,7 @@ describe('Security Testing - Authentication & Authorization', () => {
           await page.type('[name="password"]', 'testpass');
           
           await page.click('[type="submit"]');
-          await page.waitForTimeout(2000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
           // Check if XSS payload is rendered as-is (vulnerability)
           const pageContent = await page.content();
@@ -294,7 +294,7 @@ describe('Security Testing - Authentication & Authorization', () => {
             };
           } catch (error) {
             return {
-              error: error.toString()
+              error: (error as Error).toString()
             };
           }
         }, formData);
@@ -349,7 +349,7 @@ describe('Security Testing - Authentication & Authorization', () => {
           
           const attemptStart = Date.now();
           await page.click('[type="submit"]');
-          await page.waitForTimeout(1000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
           const attemptEnd = Date.now();
 
           // Check for lockout message
@@ -365,16 +365,16 @@ describe('Security Testing - Authentication & Authorization', () => {
           }
 
           // Check for lockout indicators
-          if (errorMessage.toLowerCase().includes('locked') ||
+          if (errorMessage && (errorMessage.toLowerCase().includes('locked') ||
               errorMessage.toLowerCase().includes('blocked') ||
               errorMessage.toLowerCase().includes('attempts') ||
-              errorMessage.toLowerCase().includes('limit')) {
+              errorMessage.toLowerCase().includes('limit'))) {
             lockedOut = true;
             lastResponse = errorMessage;
             break;
           }
 
-          lastResponse = errorMessage;
+          lastResponse = errorMessage || '';
         }
 
         const totalTime = Date.now() - startTime;
@@ -510,7 +510,7 @@ describe('Security Testing - Authentication & Authorization', () => {
           await page.type('[name="password"]', attempt.password);
           
           await page.click('[type="submit"]');
-          await page.waitForTimeout(2000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
           // Check if registration was successful (bypass)
           const currentUrl = page.url();
@@ -523,9 +523,9 @@ describe('Security Testing - Authentication & Authorization', () => {
             el => el.textContent
           ).catch(() => '');
 
-          const hasPasswordError = errorMessage.toLowerCase().includes('password') ||
+          const hasPasswordError = errorMessage && (errorMessage.toLowerCase().includes('password') ||
                                  errorMessage.toLowerCase().includes('weak') ||
-                                 errorMessage.toLowerCase().includes('requirements');
+                                 errorMessage.toLowerCase().includes('requirements'));
 
           if (isSuccessful && !hasPasswordError) {
             bypassSuccessful = true;
@@ -611,7 +611,7 @@ describe('Security Testing - Authentication & Authorization', () => {
               });
 
               const result = await technique(endpoint);
-              await page.waitForTimeout(2000);
+              await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
               
               const finalUrl = page.url();
               const isProtected = finalUrl.includes('/login') || finalUrl.includes('/auth');

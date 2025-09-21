@@ -7,7 +7,7 @@ class FaceAPIOptimizer {
   private static instance: FaceAPIOptimizer
   private isLoaded = false
   private loadingPromise: Promise<void> | null = null
-  private modelCache = new Map<string, any>()
+  private modelCache = new Map<string, unknown>()
   
   private constructor() {}
   

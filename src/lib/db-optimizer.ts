@@ -17,7 +17,7 @@ const createOptimizedPrisma = () => {
 class DatabaseOptimizer {
   private static instance: DatabaseOptimizer
   private prisma: PrismaClient
-  private queryCache: Map<string, { data: any; timestamp: number }> = new Map()
+  private queryCache: Map<string, { data: unknown; timestamp: number }> = new Map()
   private cacheTimeout = 5 * 60 * 1000 // 5 minutes
 
   private constructor() {
@@ -74,11 +74,11 @@ class DatabaseOptimizer {
     })
   }
 
-  private generateCacheKey(params: any): string {
-    return `${params.model}_${params.action}_${JSON.stringify(params.args)}`
+  private generateCacheKey(params: { model?: string; action: string; args: unknown }): string {
+    return `${params.model || 'unknown'}_${params.action}_${JSON.stringify(params.args)}`
   }
 
-  private getFromCache(key: string): any | null {
+  private getFromCache(key: string): unknown | null {
     const cached = this.queryCache.get(key)
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return cached.data
@@ -92,7 +92,7 @@ class DatabaseOptimizer {
     return null
   }
 
-  private setCache(key: string, data: any): void {
+  private setCache(key: string, data: unknown): void {
     // Limit cache size
     if (this.queryCache.size > 100) {
       const firstKey = this.queryCache.keys().next().value
@@ -166,16 +166,17 @@ class DatabaseOptimizer {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const skip = (page - 1) * limit
     
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (filters.userId) {
       where.userId = filters.userId
     }
     
     if (filters.startDate || filters.endDate) {
-      where.timestamp = {}
-      if (filters.startDate) where.timestamp.gte = filters.startDate
-      if (filters.endDate) where.timestamp.lte = filters.endDate
+      const timestampFilter: { gte?: Date; lte?: Date } = {}
+      if (filters.startDate) timestampFilter.gte = filters.startDate
+      if (filters.endDate) timestampFilter.lte = filters.endDate
+      where.timestamp = timestampFilter
     }
 
     // Simplified implementation - return empty data for now

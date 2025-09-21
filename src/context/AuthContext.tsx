@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 localStorage.removeItem(key)
               }
             })
-          } catch (e) {
+          } catch {
             // Ignore errors clearing cache
           }
         }
@@ -456,7 +456,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem(key)
           }
         })
-      } catch (e) {
+      } catch {
         // Ignore errors clearing cache
       }
     }

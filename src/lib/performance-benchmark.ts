@@ -75,9 +75,9 @@ export class PerformanceBenchmark {
 
   // Get all measurements
   static getAllStats() {
-    const stats: Record<string, any> = {}
+    const stats: Record<string, unknown> = {}
     
-    for (const [label, _] of this.measurements) {
+    for (const [label] of this.measurements) {
       stats[label] = this.getStats(label)
     }
     
@@ -87,7 +87,7 @@ export class PerformanceBenchmark {
   // Memory usage monitoring
   static getMemoryUsage() {
     if ('memory' in performance) {
-      const memory = (performance as any).memory
+      const memory = (performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory
       return {
         used: memory.usedJSHeapSize,
         total: memory.totalJSHeapSize,
@@ -110,15 +110,16 @@ export class PerformanceBenchmark {
     let clsValue = 0
     const clsObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        if (entry.entryType === 'layout-shift' && !(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value
+        const layoutShiftEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+        if (entry.entryType === 'layout-shift' && !layoutShiftEntry.hadRecentInput) {
+          clsValue += layoutShiftEntry.value || 0
         }
       }
     })
     
     try {
       clsObserver.observe({ type: 'layout-shift', buffered: true })
-    } catch (e) {
+    } catch {
       console.warn('CLS monitoring not supported')
     }
 
@@ -132,7 +133,7 @@ export class PerformanceBenchmark {
     
     try {
       lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true })
-    } catch (e) {
+    } catch {
       console.warn('LCP monitoring not supported')
     }
 
@@ -140,16 +141,16 @@ export class PerformanceBenchmark {
     let fidValue = 0
     const fidObserver = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const fidEntry = entry as any
+        const fidEntry = entry as PerformanceEntry & { processingStart?: number };
         if (fidEntry.processingStart && fidEntry.startTime) {
-          fidValue = fidEntry.processingStart - fidEntry.startTime
+          fidValue = fidEntry.processingStart - fidEntry.startTime;
         }
       }
     })
     
     try {
       fidObserver.observe({ type: 'first-input', buffered: true })
-    } catch (e) {
+    } catch {
       console.warn('FID monitoring not supported')
     }
 
@@ -256,7 +257,7 @@ export class AppBenchmarks {
   // Benchmark database operations
   static async benchmarkDatabaseQuery(
     queryName: string,
-    queryFn: () => Promise<any>
+    queryFn: () => Promise<unknown>
   ): Promise<number> {
     return PerformanceBenchmark.measureAsync(`db-${queryName}`, queryFn)
       .then(result => result.duration)
@@ -274,7 +275,7 @@ export class AppBenchmarks {
     const results = {
       timestamp: new Date().toISOString(),
       memory: PerformanceBenchmark.getMemoryUsage(),
-      measurements: {} as Record<string, any>
+      measurements: {} as Record<string, unknown>
     }
 
     // Benchmark network latency

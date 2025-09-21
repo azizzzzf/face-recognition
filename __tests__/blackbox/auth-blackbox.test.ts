@@ -151,7 +151,7 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         await page.type('[name="password"]', 'wrongpassword123');
         
         await page.click('[type="submit"]');
-        await page.waitForTimeout(2000); // Wait for error message
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {}); // Wait for error message
         
         // Check for error message
         const errorMessage = await page.$eval(
@@ -163,7 +163,7 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         const currentUrl = page.url();
         const isLoginPage = currentUrl.includes('/login');
         
-        if (errorMessage.toLowerCase().includes('invalid') && isLoginPage) {
+        if (errorMessage && errorMessage.toLowerCase().includes('invalid') && isLoginPage) {
           return {
             actualResult: `Error ditampilkan: "${errorMessage}", tetap di halaman login`,
             success: true
@@ -191,7 +191,7 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         await page.type('[name="password"]', 'somepassword123');
         
         await page.click('[type="submit"]');
-        await page.waitForTimeout(2000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
         
         const errorMessage = await page.$eval(
           '.error-message, .alert-error, [role="alert"], .text-red-500',
@@ -201,9 +201,11 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         const currentUrl = page.url();
         const isLoginPage = currentUrl.includes('/login');
         
-        const hasUserNotFoundError = errorMessage.toLowerCase().includes('not found') || 
-                                   errorMessage.toLowerCase().includes('invalid') ||
-                                   errorMessage.toLowerCase().includes('credentials');
+        const hasUserNotFoundError = errorMessage && (
+          errorMessage.toLowerCase().includes('not found') ||
+          errorMessage.toLowerCase().includes('invalid') ||
+          errorMessage.toLowerCase().includes('credentials')
+        );
         
         if (hasUserNotFoundError && isLoginPage) {
           return {
@@ -233,12 +235,12 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         await page.type('[name="password"]', 'somepassword123');
         
         await page.click('[type="submit"]');
-        await page.waitForTimeout(1000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
         
         // Check for validation error
         const emailInput = await page.$('[name="email"]');
         const validationMessage = await page.evaluate((input) => {
-          return input.validationMessage || '';
+          return (input as HTMLInputElement)?.validationMessage || '';
         }, emailInput);
         
         // Check for custom error messages
@@ -247,9 +249,9 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
           el => el.textContent
         ).catch(() => '');
         
-        const hasEmailRequiredError = validationMessage.toLowerCase().includes('required') ||
-                                    errorMessage.toLowerCase().includes('required') ||
-                                    errorMessage.toLowerCase().includes('email');
+        const hasEmailRequiredError = (validationMessage && validationMessage.toLowerCase().includes('required')) ||
+                                    (errorMessage && errorMessage.toLowerCase().includes('required')) ||
+                                    (errorMessage && errorMessage.toLowerCase().includes('email'));
         
         if (hasEmailRequiredError) {
           return {
@@ -279,11 +281,11 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         await page.type('[name="email"]', TestConfig.testUsers.regularUser.email);
         
         await page.click('[type="submit"]');
-        await page.waitForTimeout(1000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
         
         const passwordInput = await page.$('[name="password"]');
         const validationMessage = await page.evaluate((input) => {
-          return input.validationMessage || '';
+          return (input as HTMLInputElement)?.validationMessage || '';
         }, passwordInput);
         
         const errorMessage = await page.$eval(
@@ -291,9 +293,9 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
           el => el.textContent
         ).catch(() => '');
         
-        const hasPasswordRequiredError = validationMessage.toLowerCase().includes('required') ||
-                                       errorMessage.toLowerCase().includes('required') ||
-                                       errorMessage.toLowerCase().includes('password');
+        const hasPasswordRequiredError = (validationMessage && validationMessage.toLowerCase().includes('required')) ||
+                                       (errorMessage && errorMessage.toLowerCase().includes('required')) ||
+                                       (errorMessage && errorMessage.toLowerCase().includes('password'));
         
         if (hasPasswordRequiredError) {
           return {
@@ -323,11 +325,11 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         await page.type('[name="password"]', 'somepassword123');
         
         await page.click('[type="submit"]');
-        await page.waitForTimeout(1000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
         
         const emailInput = await page.$('[name="email"]');
         const validationMessage = await page.evaluate((input) => {
-          return input.validationMessage || '';
+          return (input as HTMLInputElement)?.validationMessage || '';
         }, emailInput);
         
         const errorMessage = await page.$eval(
@@ -335,10 +337,13 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
           el => el.textContent
         ).catch(() => '');
         
-        const hasEmailFormatError = validationMessage.toLowerCase().includes('email') ||
-                                  validationMessage.toLowerCase().includes('valid') ||
-                                  errorMessage.toLowerCase().includes('email') ||
-                                  errorMessage.toLowerCase().includes('format');
+        const hasEmailFormatError = (validationMessage && (
+          validationMessage.toLowerCase().includes('email') ||
+          validationMessage.toLowerCase().includes('valid')
+        )) || (errorMessage && (
+          errorMessage.toLowerCase().includes('email') ||
+          errorMessage.toLowerCase().includes('format')
+        ));
         
         if (hasEmailFormatError) {
           return {
@@ -380,24 +385,26 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
           await page.type('[name="password"]', `wrongpassword${i}`);
           
           await page.click('[type="submit"]');
-          await page.waitForTimeout(2000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
           
           lastErrorMessage = await page.$eval(
             '.error-message, .alert-error, [role="alert"], .text-red-500',
-            el => el.textContent
+            el => el?.textContent || ''
           ).catch(() => '');
         }
         
         // Check if account is locked or rate limited
-        const isAccountLocked = lastErrorMessage.toLowerCase().includes('locked') ||
-                              lastErrorMessage.toLowerCase().includes('blocked') ||
-                              lastErrorMessage.toLowerCase().includes('limit') ||
-                              lastErrorMessage.toLowerCase().includes('attempts');
+        const isAccountLocked = lastErrorMessage && (
+          lastErrorMessage.toLowerCase().includes('locked') ||
+          lastErrorMessage.toLowerCase().includes('blocked') ||
+          lastErrorMessage.toLowerCase().includes('limit') ||
+          lastErrorMessage.toLowerCase().includes('attempts')
+        );
         
         // Check if submit button is disabled
         const submitButton = await page.$('[type="submit"]');
         const isButtonDisabled = await page.evaluate((btn) => {
-          return btn.disabled;
+          return (btn as HTMLButtonElement)?.disabled || false;
         }, submitButton);
         
         if (isAccountLocked || isButtonDisabled) {
@@ -473,7 +480,7 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         
         for (const pagePath of protectedPages) {
           await page.goto(`${TestConfig.baseUrl}${pagePath}`);
-          await page.waitForTimeout(2000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
           
           const currentUrl = page.url();
           const isRedirectedToLogin = currentUrl.includes('/login') || currentUrl.includes('/auth');
@@ -533,7 +540,7 @@ describe('Blackbox Testing - Authentication & Authorization', () => {
         
         // Try to access protected page
         await page.goto(`${TestConfig.baseUrl}/dashboard`);
-        await page.waitForTimeout(3000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
         
         const currentUrl = page.url();
         const isRedirectedToLogin = currentUrl.includes('/login') || currentUrl.includes('/auth');
