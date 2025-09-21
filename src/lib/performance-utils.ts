@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useRef } from 'react'
 
 // Utility untuk debouncing API calls
-export function useDebounce<T extends (...args: any[]) => any>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useDebounce<T extends (...args: any) => any>(
   callback: T,
   delay: number
 ): T {
@@ -19,7 +20,8 @@ export function useDebounce<T extends (...args: any[]) => any>(
 }
 
 // Utility untuk throttling expensive operations
-export function useThrottle<T extends (...args: any[]) => any>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useThrottle<T extends (...args: any) => any>(
   callback: T,
   delay: number
 ): T {
@@ -36,23 +38,23 @@ export function useThrottle<T extends (...args: any[]) => any>(
 }
 
 // Memoized API cache untuk menghindari duplicate calls
-const apiCache = new Map<string, { data: any; timestamp: number }>()
+const apiCache = new Map<string, { data: unknown; timestamp: number }>()
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
-export function useCachedFetch<T>(url: string, options?: RequestInit) {
+export function useCachedFetch<T>(url: string, options?: RequestInit): Promise<T> {
   return useMemo(() => {
     const cachedEntry = apiCache.get(url)
     const now = Date.now()
     
     // Return cached data if still valid
     if (cachedEntry && now - cachedEntry.timestamp < CACHE_DURATION) {
-      return Promise.resolve(cachedEntry.data)
+      return Promise.resolve(cachedEntry.data as T)
     }
     
     // Fetch new data and cache it
     return fetch(url, options)
       .then(response => response.json())
-      .then(data => {
+      .then((data: T) => {
         apiCache.set(url, { data, timestamp: now })
         return data
       })
@@ -122,7 +124,7 @@ export function withPerformanceMonitor<P extends object>(
       if (time > 50) { // Log slow renders
         console.warn(`🐌 Slow render: ${componentName} took ${time.toFixed(2)}ms`)
       }
-    }, [result, endMeasure])
+    }, [endMeasure])
     
     return result
   }

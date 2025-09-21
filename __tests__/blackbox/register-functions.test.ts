@@ -103,7 +103,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -159,7 +159,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -205,7 +205,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -250,7 +250,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -296,7 +296,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -340,7 +340,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -385,7 +385,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -430,7 +430,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -474,7 +474,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -523,7 +523,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           body: JSON.stringify(input)
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         // Try to login with newly created user
         const loginResponse = await fetch(`${TestConfig.apiUrl}/auth/login`, {
@@ -535,7 +535,7 @@ describe('Blackbox Testing - Registration Page Functions', () => {
           })
         });
 
-        const loginData = await loginResponse.json();
+        const loginData = await loginResponse.json() as any;
 
         const actualOutput = {
           success: response.ok && data.success,

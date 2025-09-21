@@ -98,9 +98,13 @@ export function PerformanceMonitor({ children }: { children: React.ReactNode }) 
           // CLS Observer
           const clsObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
-              if (entry.entryType === 'layout-shift' && !(entry as any).hadRecentInput) {
-                clsValue += (entry as any).value
-                clsEntries.push(entry)
+              const layoutShiftEntry = entry as PerformanceEntry & {
+                hadRecentInput?: boolean;
+                value?: number;
+              };
+              if (entry.entryType === 'layout-shift' && !layoutShiftEntry.hadRecentInput) {
+                clsValue += layoutShiftEntry.value || 0;
+                clsEntries.push(entry);
               }
             }
           })
@@ -117,9 +121,11 @@ export function PerformanceMonitor({ children }: { children: React.ReactNode }) 
           // FID Observer
           const fidObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
-              const fidEntry = entry as any
+              const fidEntry = entry as PerformanceEntry & {
+                processingStart?: number;
+              };
               if (fidEntry.processingStart && fidEntry.startTime) {
-                fidValue = fidEntry.processingStart - fidEntry.startTime
+                fidValue = fidEntry.processingStart - fidEntry.startTime;
               }
             }
           })
@@ -152,7 +158,13 @@ export function PerformanceMonitor({ children }: { children: React.ReactNode }) 
       
       // Memory usage monitoring (if available)
       if ('memory' in performance) {
-        const memory = (performance as any).memory
+        const memory = (performance as unknown as {
+          memory: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        }).memory;
         console.log('💾 Memory usage:', {
           used: `${(memory.usedJSHeapSize / 1048576).toFixed(2)}MB`,
           total: `${(memory.totalJSHeapSize / 1048576).toFixed(2)}MB`,

@@ -127,7 +127,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -180,7 +180,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -235,7 +235,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -287,7 +287,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -339,7 +339,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -394,7 +394,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -465,7 +465,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           body: formData
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -508,7 +508,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           headers: { 'Content-Type': 'application/json' }
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -549,7 +549,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
           headers: { 'Content-Type': 'application/json' }
         });
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,
@@ -606,7 +606,7 @@ describe('Blackbox Testing - Face Recognition Page Functions', () => {
         const endTime = Date.now();
         const responseTime = endTime - startTime;
 
-        const data = await response.json();
+        const data = await response.json() as any;
         
         const actualOutput = {
           success: response.ok && data.success,

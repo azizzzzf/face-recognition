@@ -120,7 +120,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
       return canvas.toDataURL('image/jpeg', 0.8);
     `;
 
-    const dataUrl = await page.evaluate(canvas);
+    const dataUrl = await page.evaluate(canvas) as string;
     const base64Data = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
     fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
   };
@@ -208,14 +208,14 @@ describe('Blackbox Testing - Face Registration Flow', () => {
 
         // Upload file
         await fileInput.uploadFile(testImages.validFace);
-        await page.waitForTimeout(3000); // Wait for processing
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {}); // Wait for processing
 
         // Check for preview
         const preview = await page.$('[data-testid="image-preview"], .image-preview, img[src*="blob:"]') !== null;
         
         // Check if register button is enabled
         const registerButton = await page.$('[data-testid="register-button"], button[type="submit"]');
-        const isButtonEnabled = registerButton ? await page.evaluate((btn) => !btn.disabled, registerButton) : false;
+        const isButtonEnabled = registerButton ? await page.evaluate((btn) => !(btn as HTMLButtonElement).disabled, registerButton) : false;
 
         // Check for success indicators
         const successIndicator = await page.$('.upload-success, .text-green-500') !== null;
@@ -250,7 +250,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         }
 
         await fileInput.uploadFile(testImages.invalidFormat);
-        await page.waitForTimeout(2000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
         // Check for error message
         const errorMessage = await page.$eval(
@@ -261,9 +261,11 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         // Check if upload was rejected
         const preview = await page.$('[data-testid="image-preview"], .image-preview, img[src*="blob:"]') === null;
 
-        const hasFormatError = errorMessage.toLowerCase().includes('format') ||
-                             errorMessage.toLowerCase().includes('supported') ||
-                             errorMessage.toLowerCase().includes('invalid');
+        const hasFormatError = errorMessage && (
+          errorMessage.toLowerCase().includes('format') ||
+          errorMessage.toLowerCase().includes('supported') ||
+          errorMessage.toLowerCase().includes('invalid')
+        );
 
         if (hasFormatError && preview) {
           return {
@@ -297,16 +299,18 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         try {
           const fileInput = await page.$('input[type="file"]');
           await fileInput?.uploadFile(largeFilePath);
-          await page.waitForTimeout(3000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
           const errorMessage = await page.$eval(
             '.error-message, .alert-error, [role="alert"], .text-red-500',
             el => el.textContent
           ).catch(() => '');
 
-          const hasLargeFileError = errorMessage.toLowerCase().includes('large') ||
-                                  errorMessage.toLowerCase().includes('size') ||
-                                  errorMessage.toLowerCase().includes('limit');
+          const hasLargeFileError = errorMessage && (
+            errorMessage.toLowerCase().includes('large') ||
+            errorMessage.toLowerCase().includes('size') ||
+            errorMessage.toLowerCase().includes('limit')
+          );
 
           if (hasLargeFileError) {
             return {
@@ -340,20 +344,22 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         
         const fileInput = await page.$('input[type="file"]');
         await fileInput?.uploadFile(testImages.noFace);
-        await page.waitForTimeout(5000); // Wait longer for face detection
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {}); // Wait longer for face detection
 
         const errorMessage = await page.$eval(
           '.error-message, .alert-error, [role="alert"], .text-red-500',
           el => el.textContent
         ).catch(() => '');
 
-        const hasNoFaceError = errorMessage.toLowerCase().includes('face') ||
-                             errorMessage.toLowerCase().includes('detected') ||
-                             errorMessage.toLowerCase().includes('found');
+        const hasNoFaceError = errorMessage && (
+          errorMessage.toLowerCase().includes('face') ||
+          errorMessage.toLowerCase().includes('detected') ||
+          errorMessage.toLowerCase().includes('found')
+        );
 
         // Check if register button is disabled
         const registerButton = await page.$('[data-testid="register-button"], button[type="submit"]');
-        const isButtonDisabled = registerButton ? await page.evaluate((btn) => btn.disabled, registerButton) : true;
+        const isButtonDisabled = registerButton ? await page.evaluate((btn) => (btn as HTMLButtonElement).disabled, registerButton) : true;
 
         if (hasNoFaceError || isButtonDisabled) {
           return {
@@ -381,7 +387,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         
         const fileInput = await page.$('input[type="file"]');
         await fileInput?.uploadFile(testImages.multipleFaces);
-        await page.waitForTimeout(5000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
         const errorMessage = await page.$eval(
           '.error-message, .alert-error, [role="alert"], .text-red-500, .warning-message',
@@ -391,9 +397,10 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         // Check for face selection UI
         const faceSelector = await page.$('[data-testid="face-selector"], .face-selection') !== null;
 
-        const hasMultipleFaceHandling = errorMessage.toLowerCase().includes('multiple') ||
-                                      errorMessage.toLowerCase().includes('faces') ||
-                                      faceSelector;
+        const hasMultipleFaceHandling = (errorMessage && (
+          errorMessage.toLowerCase().includes('multiple') ||
+          errorMessage.toLowerCase().includes('faces')
+        )) || faceSelector;
 
         if (hasMultipleFaceHandling) {
           return {
@@ -427,7 +434,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         }
 
         await cameraButton.click();
-        await page.waitForTimeout(2000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
         // Check if camera stream is active
         const videoElement = await page.$('video') !== null;
@@ -438,7 +445,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         if (videoElement && captureButton) {
           // Simulate capture
           await page.click('[data-testid="capture-button"], .capture-btn');
-          await page.waitForTimeout(2000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
           // Check for captured image preview
           const preview = await page.$('[data-testid="captured-image"], .captured-preview, canvas') !== null;
@@ -501,7 +508,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
           }
         }, Array.from(fileBuffer), path.basename(filePath));
 
-        await page.waitForTimeout(3000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
         // Check for successful upload indicators
         const preview = await page.$('[data-testid="image-preview"], .image-preview, img[src*="blob:"]') !== null;
@@ -538,7 +545,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         // Setup listeners for progress elements
         page.on('response', async (response) => {
           if (response.url().includes('/upload') || response.url().includes('/face')) {
-            await page.waitForTimeout(100);
+            await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
             const progressBar = await page.$('[data-testid="progress-bar"], .progress-bar, progress') !== null;
             const loadingSpinner = await page.$('[data-testid="loading"], .loading, .spinner') !== null;
             
@@ -549,7 +556,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
 
         const fileInput = await page.$('input[type="file"]');
         await fileInput?.uploadFile(testImages.largeFace); // Use larger file to see progress
-        await page.waitForTimeout(5000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
         if (progressIndicatorFound || loadingIndicatorFound) {
           return {
@@ -578,19 +585,19 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         // Start upload process
         const fileInput = await page.$('input[type="file"]');
         await fileInput?.uploadFile(testImages.validFace);
-        await page.waitForTimeout(2000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
         // Look for cancel button
         const cancelButton = await page.$('[data-testid="cancel-button"], .cancel-btn, button[data-action="cancel"]');
         
         if (cancelButton) {
           await cancelButton.click();
-          await page.waitForTimeout(1000);
+          await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
           // Check if process was cancelled
           const preview = await page.$('[data-testid="image-preview"], .image-preview, img[src*="blob:"]') === null;
           const registerButton = await page.$('[data-testid="register-button"], button[type="submit"]');
-          const isButtonDisabled = registerButton ? await page.evaluate((btn) => btn.disabled, registerButton) : true;
+          const isButtonDisabled = registerButton ? await page.evaluate((btn) => (btn as HTMLButtonElement).disabled, registerButton) : true;
 
           if (preview && isButtonDisabled) {
             return {
@@ -634,7 +641,7 @@ describe('Blackbox Testing - Face Registration Flow', () => {
 
         const fileInput = await page.$('input[type="file"]');
         await fileInput?.uploadFile(testImages.validFace);
-        await page.waitForTimeout(5000);
+        await page.waitForSelector('body', { timeout: 5000 }).catch(() => {});
 
         // Check for error message
         const errorMessage = await page.$eval(
@@ -645,9 +652,11 @@ describe('Blackbox Testing - Face Registration Flow', () => {
         // Check for retry option
         const retryButton = await page.$('[data-testid="retry-button"], .retry-btn') !== null;
 
-        const hasNetworkError = errorMessage.toLowerCase().includes('network') ||
-                              errorMessage.toLowerCase().includes('connection') ||
-                              errorMessage.toLowerCase().includes('failed');
+        const hasNetworkError = errorMessage && (
+          errorMessage.toLowerCase().includes('network') ||
+          errorMessage.toLowerCase().includes('connection') ||
+          errorMessage.toLowerCase().includes('failed')
+        );
 
         if ((hasNetworkError || errorMessage) && retryButton) {
           return {
