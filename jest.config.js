@@ -2,7 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/tests'],
+  roots: ['<rootDir>/__tests__'],
   testMatch: [
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/*.(test|spec).+(ts|tsx|js)'
@@ -14,7 +14,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@/tests/(.*)$': '<rootDir>/tests/$1',
+    '^@/tests/(.*)$': '<rootDir>/__tests__/$1',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(node-fetch|data-uri-to-buffer|fetch-blob|formdata-polyfill)/)'
@@ -27,6 +27,6 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
   ],
-  coverageDirectory: 'tests/reports/coverage',
+  coverageDirectory: '__tests__/reports/coverage',
   coverageReporters: ['text', 'lcov', 'html'],
 };
