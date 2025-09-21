@@ -39,6 +39,9 @@ jobs:
       run: npm run test:no-e2e
       
     - name: Build application
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
       run: npm run build
       
     - name: Upload build artifacts
